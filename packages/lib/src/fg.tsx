@@ -52,8 +52,7 @@ export async function initFeatureGates({
 
   try {
     await client.initializeAsync();
-  }
-  catch(error) {
+  } catch(error) {
     if (error instanceof Error) {
       // eslint-disable-next-line no-console
       console.error("Could not initialize Statsig client", error.name, error.message, error.stack);
