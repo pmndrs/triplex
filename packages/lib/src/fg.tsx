@@ -55,7 +55,7 @@ export async function initFeatureGates({
   } catch(error) {
     if (error instanceof Error) {
       // eslint-disable-next-line no-console
-      console.error("Could not initialize Statsig client", error.name, error.message, error.stack);
+      console.warn("Could not initialize Statsig, all feature gates will be disabled.");
     }
   }
 
