@@ -6,12 +6,22 @@
  */
 
 import { compose, on, type RendererElementProps } from "@triplex/bridge/client";
+import { isRawCodeExpression } from "@triplex/lib";
 import { fg } from "@triplex/lib/fg";
+import { evaluateNumericalExpression } from "@triplex/lib/math";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function useForceRender() {
   const [, setState] = useState(0);
   return useCallback(() => setState((prev) => prev + 1), []);
+}
+
+function unwrapPropValue(value: unknown): unknown {
+  if (isRawCodeExpression(value)) {
+    const evaluated = evaluateNumericalExpression(value.__expr);
+    return evaluated !== null ? evaluated : value;
+  }
+  return value;
 }
 
 export function useTemporaryProps(
@@ -40,8 +50,10 @@ export function useTemporaryProps(
         }
       }),
       on("request-set-element-prop", (data) => {
+        const propValue = unwrapPropValue(data.propValue);
+
         if (data.astPath === meta.astPath && fg("selection_ast_path")) {
-          intermediateProps.current[data.propName] = data.propValue;
+          intermediateProps.current[data.propName] = propValue;
           forceRender();
         } else if (
           "column" in data &&
@@ -49,7 +61,7 @@ export function useTemporaryProps(
           data.line === meta.line &&
           data.path === meta.path
         ) {
-          intermediateProps.current[data.propName] = data.propValue;
+          intermediateProps.current[data.propName] = propValue;
           forceRender();
         }
       }),

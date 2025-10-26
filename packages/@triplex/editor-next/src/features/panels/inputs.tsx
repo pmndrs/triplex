@@ -6,6 +6,7 @@
  */
 import {
   CheckIcon,
+  CodeIcon,
   ExclamationTriangleIcon,
   SwitchIcon,
 } from "@radix-ui/react-icons";
@@ -16,7 +17,7 @@ import {
   BooleanInput,
   ColorInput,
   LiteralUnionInput,
-  NumberInput,
+  NumberOrExpressionInput,
   resolveDefaultValue,
   StringInput,
   TupleInputNext,
@@ -126,7 +127,7 @@ export const renderPropInputs: RenderInputs = ({
     const persistedValue = "value" in prop.prop ? prop.prop.value : undefined;
 
     return (
-      <NumberInput
+      <NumberOrExpressionInput
         {...prop.prop.tags}
         actionId="scene_controls"
         defaultValue={resolveDefaultValue(prop.prop, "number")}
@@ -138,7 +139,7 @@ export const renderPropInputs: RenderInputs = ({
         pointerMode="capture"
         required={prop.prop.required}
       >
-        {({ ref, ...props }, { isActive }) => (
+        {({ ref, ...props }, { isActive, mode, shouldFocus, toggle }) => (
           <>
             <Label
               description={prop.prop.description}
@@ -147,19 +148,33 @@ export const renderPropInputs: RenderInputs = ({
             >
               {prop.prop.name}
             </Label>
-            <input
-              {...props}
-              aria-label={prop.prop.label}
-              className={cn([
-                !isActive && "invalid:border-danger",
-                "text-input border-input focus:border-selected bg-input placeholder:text-input-placeholder mb-1 h-[26px] w-full cursor-col-resize rounded-sm border px-[9px] [color-scheme:light_dark] [font-variant-numeric:tabular-nums] focus:cursor-text focus:outline-none",
-              ])}
-              ref={ref}
-              type="number"
-            />
+            <div className="mb-1 flex gap-1">
+              <input
+                {...props}
+                aria-label={prop.prop.label}
+                autoFocus={shouldFocus}
+                className={cn([
+                  !isActive && "invalid:border-danger",
+                  "text-input border-input focus:border-selected bg-input placeholder:text-input-placeholder mb-1 h-[26px] w-full cursor-col-resize rounded-sm border px-[9px] [color-scheme:light_dark] [font-variant-numeric:tabular-nums] focus:cursor-text focus:outline-none",
+                ])}
+                ref={ref}
+                type={mode === "number" ? "number" : "text"}
+              />
+              <IconButton
+                actionId="contextpanel_input_number_expression_toggle"
+                icon={CodeIcon}
+                label={
+                  mode === "number"
+                    ? "Switch to expression"
+                    : "Switch to number"
+                }
+                onClick={toggle}
+                spacing="spacious"
+              />
+            </div>
           </>
         )}
-      </NumberInput>
+      </NumberOrExpressionInput>
     );
   }
 

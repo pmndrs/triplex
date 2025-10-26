@@ -5,7 +5,11 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 export { cn } from "./tw-merge";
-export { toJSONString } from "./string";
+export {
+  toJSONString,
+  type RawCodeExpression,
+  isRawCodeExpression,
+} from "./string";
 export { useEvent } from "./use-event";
 export { type Accelerator, onKeyDown, blockInputPropagation } from "./keyboard";
 export {

@@ -4,6 +4,7 @@
  * This repository utilizes multiple licenses across different directories. To
  * see this files license find the nearest LICENSE file up the source tree.
  */
+import { evaluateNumericalExpression } from "@triplex/lib/math";
 import {
   type AttributeValue,
   type DeclaredProp,
@@ -462,6 +463,10 @@ export function resolveExpressionValue(
 
   if (Node.isNumericLiteral(expression)) {
     return { kind: "number", value: Number(expression.getLiteralText()) };
+  }
+
+  if (expression && evaluateNumericalExpression(expression.getText())) {
+    return { kind: "number", value: expression.getText() };
   }
 
   if (Node.isPrefixUnaryExpression(expression)) {

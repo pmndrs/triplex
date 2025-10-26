@@ -8,6 +8,7 @@ export { BooleanInput } from "./boolean-input";
 export { ColorInput } from "./color-input";
 export { LiteralUnionInput } from "./literal-union-input";
 export { NumberInput } from "./number-input";
+export { NumberOrExpressionInput } from "./number-or-expression-input";
 export { PropInput } from "./prop-input";
 export { StringInput } from "./string-input";
 export { TupleInput } from "./tuple-input";

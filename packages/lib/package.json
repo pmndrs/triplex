@@ -29,6 +29,11 @@
       "module": "./src/log.ts",
       "default": "./src/log.ts"
     },
+    "./math": {
+      "types": "./src/math.ts",
+      "module": "./src/math.ts",
+      "default": "./src/math.ts"
+    },
     "./node": {
       "types": "./src/node.ts",
       "module": "./src/node.ts",

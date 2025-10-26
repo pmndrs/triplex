@@ -5,15 +5,8 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 import { type Mutation } from "@triplex/server";
+import { toJSONString } from "@triplex/lib";
 import * as vscode from "vscode";
-
-function toJSONString(value: unknown): string {
-  const str = JSON.stringify(value, (_k, v) =>
-    v === undefined ? "__UNDEFINED__" : v,
-  );
-
-  return str.replaceAll('"__UNDEFINED__"', "undefined");
-}
 
 export class TriplexDocument implements vscode.CustomDocument {
   private _onDidChange = new vscode.EventEmitter<{

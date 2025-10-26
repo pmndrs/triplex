@@ -1201,4 +1201,37 @@ describe("type infer", () => {
         ]
       `);
   });
+  it("should evaluate expressions", () => {
+    const project = _createProject({
+      tsConfigFilePath: join(__dirname, "__mocks__/tsconfig.json"),
+    });
+    const sourceFile = project.addSourceFileAtPath(
+      join(__dirname, "__mocks__/prop-expression.tsx"),
+    );
+    const sceneObject = getJsxElementAt(sourceFile, 12, 5);
+    if (!sceneObject) {
+      throw new Error("not found");
+    }
+
+    const { props } = getJsxElementPropTypes(sceneObject);
+    const rotateXProp = props.find((prop) => prop.name === "rotateX");
+    expect(rotateXProp).toEqual(
+      expect.objectContaining({
+        value: "Math.PI / 2",
+        valueKind: "number",
+      }),
+    );
+    const rotateYProp = props.find((prop) => prop.name === "rotateY");
+    expect(rotateYProp).toEqual(
+      expect.objectContaining({
+        valueKind: "unhandled",
+      }),
+    );
+    const positionProp = props.find((prop) => prop.name === "position");
+    expect(positionProp).toEqual(
+      expect.objectContaining({
+        value: ["Math.sqrt(2)", "Math.sqrt(2)", "Math.sqrt(2)"],
+      }),
+    );
+  });
 });
