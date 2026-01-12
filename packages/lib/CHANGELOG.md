@@ -1,5 +1,11 @@
 # @triplex/lib
 
+## 0.69.19
+
+### Patch Changes
+
+- a7a0138: fixed #356 - triplex should run offline
+
 ## 0.69.18
 
 ### Patch Changes

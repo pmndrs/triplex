@@ -10,7 +10,7 @@
     "@paper-design/shaders-react": "^0.0.21",
     "@react-three/drei": "^10.1.1",
     "@react-three/fiber": "^9.1.2",
-    "@triplex/lib": "0.69.18",
+    "@triplex/lib": "0.69.19",
     "@types/react": "^19.1.6",
     "@types/three": "^0.171.0",
     "bind-event-listener": "3.0.0",

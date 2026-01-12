@@ -1,5 +1,12 @@
 # @triplex/electron
 
+## 0.70.54
+
+### Patch Changes
+
+- @triplex/client@0.70.47
+- @triplex/editor@0.70.53
+
 ## 0.70.53
 
 ### Patch Changes

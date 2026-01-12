@@ -1,5 +1,12 @@
 # @triplex/vscode
 
+## 0.2.57
+
+### Patch Changes
+
+- a7a0138: fixed #356 - triplex should run offline
+  - @triplex/client@0.70.47
+
 ## 0.2.56
 
 ### Patch Changes
