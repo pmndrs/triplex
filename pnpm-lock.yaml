@@ -124,7 +124,7 @@ importers:
         specifier: ^1.2.14
         version: 1.2.14(zod@3.25.36)
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../packages/lib
       ai:
         specifier: ^4.3.12
@@ -176,10 +176,10 @@ importers:
         specifier: ^9.1.2
         version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../packages/lib
       '@triplex/ux':
-        specifier: 0.69.32
+        specifier: 0.69.33
         version: link:../../packages/ux
       '@types/cors':
         specifier: ^2.8.17
@@ -261,10 +261,10 @@ importers:
   apps/electron:
     dependencies:
       '@triplex/client':
-        specifier: 0.70.46
+        specifier: 0.70.47
         version: link:../../packages/@triplex/client
       '@triplex/editor':
-        specifier: 0.70.52
+        specifier: 0.70.53
         version: link:../../packages/@triplex/editor
       '@triplex/server':
         specifier: 0.71.24
@@ -280,7 +280,7 @@ importers:
         specifier: ^8.30.0
         version: 8.30.0
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../packages/lib
       '@types/glob-parent':
         specifier: ^5.1.1
@@ -334,7 +334,7 @@ importers:
   apps/vscode:
     dependencies:
       '@triplex/client':
-        specifier: 0.70.46
+        specifier: 0.70.47
         version: link:../../packages/@triplex/client
       '@triplex/server':
         specifier: 0.71.24
@@ -344,7 +344,7 @@ importers:
         specifier: ^8.30.0
         version: 8.30.0
       '@triplex/editor-next':
-        specifier: ^0.0.9
+        specifier: ^0.0.10
         version: link:../../packages/@triplex/editor-next
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -629,7 +629,7 @@ importers:
         specifier: ^9.1.2
         version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../packages/lib
       '@types/react':
         specifier: ^19.0.8
@@ -906,7 +906,7 @@ importers:
         specifier: 0.70.12
         version: link:../../bridge
       '@triplex/renderer':
-        specifier: 0.72.0
+        specifier: 0.72.1
         version: link:../../renderer
       '@vitejs/plugin-react':
         specifier: ^4.4.1
@@ -934,7 +934,7 @@ importers:
         specifier: ^1.6.5
         version: 1.6.5(@swc/helpers@0.5.15)
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../lib
       '@triplex/server':
         specifier: 0.71.24
@@ -1018,10 +1018,10 @@ importers:
         specifier: 0.70.12
         version: link:../../bridge
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../lib
       '@triplex/ux':
-        specifier: 0.69.32
+        specifier: 0.69.33
         version: link:../../ux
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1121,10 +1121,10 @@ importers:
         specifier: 0.70.12
         version: link:../../bridge
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../lib
       '@triplex/ux':
-        specifier: 0.69.32
+        specifier: 0.69.33
         version: link:../../ux
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1213,7 +1213,7 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(react@19.1.0)(three@0.172.0)
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../../lib
       '@triplex/websocks-server':
         specifier: 0.0.7
@@ -1443,7 +1443,7 @@ importers:
         specifier: 0.70.12
         version: link:../bridge
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../lib
       bind-event-listener:
         specifier: ^3.0.0
@@ -1540,7 +1540,7 @@ importers:
         specifier: 0.70.12
         version: link:../bridge
       '@triplex/lib':
-        specifier: 0.69.18
+        specifier: 0.69.19
         version: link:../lib
       bind-event-listener:
         specifier: ^3.0.0
@@ -2236,6 +2236,7 @@ packages:
 
   '@fortawesome/react-fontawesome@0.2.2':
     resolution: {integrity: sha512-EnkrprPNqI6SXJl//m29hpaNzOp1bruISWaOiRtkMi/xSvHJlzc2j2JAYS7egxt/EbjSNV/k6Xy0AQI6vB2+1g==}
+    deprecated: v0.2.x is no longer supported. Unless you are still using FontAwesome 5, please update to v3.1.1 or greater.
     peerDependencies:
       '@fortawesome/fontawesome-svg-core': ~1 || ~6
       react: ^19.0.0
@@ -7856,6 +7857,7 @@ packages:
   next@14.2.13:
     resolution: {integrity: sha512-BseY9YNw8QJSwLYD7hlZzl6QVDoSFHL/URN5K64kVEVpCsSOWeyjbIGK+dZUaRViHTaMQX8aqmnn0PHBbGZezg==}
     engines: {node: '>=18.17.0'}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/security-update-2025-12-11 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -7874,6 +7876,7 @@ packages:
   next@15.3.1:
     resolution: {integrity: sha512-8+dDV0xNLOgHlyBxP1GwHGVaNXsmp+2NhZEYrXr24GWLHtt27YrBPbPuHvzlhi7kZNYjeJNR93IF5zfFu5UL0g==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -10145,10 +10148,12 @@ packages:
   whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
