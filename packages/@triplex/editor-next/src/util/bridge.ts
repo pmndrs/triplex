@@ -17,11 +17,6 @@ declare global {
 export const vscode = window.acquireVsCodeApi();
 
 export interface FromVSCodeEvent {
-  "request-response": {
-    error?: string;
-    id: number;
-    result: unknown;
-  };
   "vscode:play-camera": {
     name: "default" | "editor";
   };
@@ -126,11 +121,6 @@ export interface ToVSCodeEvent extends ClientSendEventData {
     type: "info" | "warning" | "error";
   };
   "reload-webviews": undefined;
-  "send-request": {
-    data: ToVSCodeEvent[keyof ToVSCodeEvent];
-    event: keyof ToVSCodeEvent;
-    id: number;
-  };
   terminal: {
     command: string;
   };
@@ -162,46 +152,6 @@ export function sendVSCE<TEvent extends keyof ToVSCodeEvent>(
   data: ToVSCodeEvent[TEvent],
 ) {
   vscode.postMessage({ data, eventName });
-}
-
-let requestId = 0;
-/* lint */
-const requests: Map<
-  number,
-  { reject: (reason?: unknown) => void; resolve: (value: unknown) => void }
-> = new Map();
-
-export function requestVSCE<S, TEvent extends keyof ToVSCodeEvent>(
-  eventName: TEvent,
-  data: ToVSCodeEvent[TEvent],
-): Promise<S> {
-  const id = requestId++;
-
-  const promise = new Promise<unknown>((resolve, reject) => {
-    requests.set(id, { reject, resolve });
-    vscode.postMessage({
-      data: { data, event: eventName, id },
-      eventName: "send-request",
-    });
-  });
-
-  return promise as Promise<S>;
-}
-
-export function handleVSCERequestResponse(data: {
-  error?: string;
-  id: number;
-  result: unknown;
-}) {
-  const request = requests.get(data.id);
-  if (request) {
-    requests.delete(data.id);
-    if (data.error) {
-      request.reject(new Error(data.error));
-    } else {
-      request.resolve(data.result);
-    }
-  }
 }
 
 export function forwardClientMessages(eventName: keyof ClientSendEventData) {

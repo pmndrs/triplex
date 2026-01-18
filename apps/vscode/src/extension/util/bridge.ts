@@ -37,7 +37,5 @@ export function on<TEventName extends keyof ToVSCodeEvent>(
     }
   });
 
-  return () => {
-    disposable.dispose();
-  };
+  return () => disposable.dispose();
 }
