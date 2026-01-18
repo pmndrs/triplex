@@ -608,6 +608,7 @@ export async function createServer({
       { defer: true, path: "/scene/:path" },
       async ({ path }) => {
         const result = await getExports({
+          components: config.components,
           files: config.files,
           path,
           project,

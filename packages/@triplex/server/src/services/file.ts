@@ -20,6 +20,7 @@ export function getSceneExport({
   project,
 }: {
   exportName: string;
+
   files: string[];
   path: string;
   project: TRIPLEXProject;
@@ -49,10 +50,12 @@ export function getSceneExport({
 }
 
 export function getExports({
+  components,
   files,
   path,
   project,
 }: {
+  components: string[];
   files: string[];
   path: string;
   project: TRIPLEXProject;
@@ -62,6 +65,7 @@ export function getExports({
 
   return {
     exports: foundExports,
+    matchesComponentsGlob: matchFile(path, components),
     matchesFilesGlob: matchFile(path, files),
     path,
   };

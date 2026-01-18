@@ -36,7 +36,10 @@ export function AddComponentToScene({
   onComplete: () => void;
 }) {
   const { exportName, path } = useSceneContext();
-  const { exports } = useLazySubscription("/scene/:path", { path: fileUri });
+  const { exports, matchesComponentsGlob } = useLazySubscription(
+    "/scene/:path",
+    { path: fileUri },
+  );
   const components = filterSameComponent({
     exportName,
     path,
@@ -44,16 +47,32 @@ export function AddComponentToScene({
     sourcePath: fileUri,
   });
   const onCompleteEvent = useEvent(onComplete);
-  const state =
-    components.length === 0
-      ? "abort"
-      : components.length > 1
-        ? "select-first"
-        : "ready";
   const [selectedExportName, setSelectedExportName] = useState<string>();
+  let state: "abort" | "select-first" | "ready" | "outside-components";
+
+  if (components.length === 0) {
+    state = "abort";
+  } else if (!matchesComponentsGlob) {
+    state = "outside-components";
+  } else if (components.length > 1) {
+    state = "select-first";
+  } else {
+    state = "ready";
+  }
 
   useEffect(() => {
     if (state === "abort") {
+      onCompleteEvent();
+      return;
+    }
+
+    if (state === "outside-components") {
+      sendVSCE("notification", {
+        actions: ["View Triplex Config"],
+        message:
+          "Could not add component as the file is not in the allowed components folders.",
+        type: "warning",
+      });
       onCompleteEvent();
       return;
     }

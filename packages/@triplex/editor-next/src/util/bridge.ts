@@ -116,7 +116,7 @@ export interface ToVSCodeEvent extends ClientSendEventData {
     source: { astPath: string; column: number; line: number };
   };
   notification: {
-    actions: string[];
+    actions: "View Triplex Config"[];
     message: string;
     type: "info" | "warning" | "error";
   };
