@@ -27,14 +27,16 @@ export function matchFile(file: string, fileGlobs: string[]): boolean {
 }
 
 /**
- * Resolves a remote vscode URL to a local file path if it starts with 'vscode-remote://'.
+ * Resolves a remote vscode URL to a local file path if it starts with
+ * 'vscode-remote://'.
+ *
  * @param path The file path or URL.
  * @returns The resolved local file path or the original path if not remote.
  */
 export function resolveRemoteURL(path: string) {
-  if (path.startsWith('vscode-remote://')) {
+  if (path.startsWith("vscode-remote://")) {
     // we hav a remote file drop!
-    path = path.replace(/vscode-remote:\/\/[^/]*/, 'file://');
+    path = path.replace(/vscode-remote:\/\/[^/]*/, "file://");
     return path;
   }
   return path;
@@ -43,11 +45,16 @@ export function resolveRemoteURL(path: string) {
 /**
  * Ensures that a given path is treated as a local path by adding a './' prefix
  * if it doesn't already start with './', '../', or '/'.
+ *
  * @param path The file path.
  * @returns The modified file path with a './' prefix if necessary.
  */
 export function prefixLocalPath(path: string) {
-  if (!path.startsWith('./') && !path.startsWith('../') && !path.startsWith('/')) {
+  if (
+    !path.startsWith("./") &&
+    !path.startsWith("../") &&
+    !path.startsWith("/")
+  ) {
     return `./${path}`;
   }
   return path;
@@ -55,11 +62,14 @@ export function prefixLocalPath(path: string) {
 
 /**
  * Removes the file extension from a given path.
+ *
  * @param path The file path.
  * @returns The file path without its extension.
  */
 export function omitFileExtension(path: string) {
-  const lastDotIndex = path.lastIndexOf('.');
-  if (lastDotIndex === -1) {return path;} // No extension found
+  const lastDotIndex = path.lastIndexOf(".");
+  if (lastDotIndex === -1) {
+    return path;
+  } // No extension found
   return path.slice(0, Math.max(0, lastDotIndex));
 }

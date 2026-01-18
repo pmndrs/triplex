@@ -22,7 +22,6 @@ export function useSceneLoader({
   modules: Modules;
   path: string;
 }): Scene | null {
-
   if (modules == undefined || modules == null) {
     return null;
   }

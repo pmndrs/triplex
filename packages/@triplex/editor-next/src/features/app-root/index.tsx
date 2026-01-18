@@ -10,16 +10,16 @@ import { preloadSubscription } from "../../hooks/ws";
 import { AIChat } from "../ai-chat";
 import { FloatingControls } from "../floating-controls";
 import { Panels } from "../panels";
+import { VSCodeDropZone } from "../vscode-drop-zone";
 import { Dialogs } from "./dialogs";
 import { EmptyState } from "./empty-state";
 import { Events } from "./events";
-import { FileDNDHelper } from "./dnd-helper";
 
 export function AppRoot() {
   useScreenView("app", "Screen");
 
   return (
-    <FileDNDHelper>
+    <div className="fixed inset-0 flex select-none">
       <Events />
       <Panels />
       <Dialogs />
@@ -35,7 +35,8 @@ export function AppRoot() {
         />
       </div>
       {fg("ai_chat") && <AIChat />}
-    </FileDNDHelper>
+      <VSCodeDropZone />
+    </div>
   );
 }
 

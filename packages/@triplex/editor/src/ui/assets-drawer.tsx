@@ -56,7 +56,6 @@ function ProjectAsset({
           target: targetData,
           type: {
             exportName: asset.exportName,
-            name: asset.name,
             path: asset.path,
             props: {},
             type: "custom",
@@ -68,7 +67,6 @@ function ProjectAsset({
         addComponent({
           type: {
             exportName: "Gltf",
-            name: "Gltf",
             path: "@react-three/drei",
             props: { src: asset.path },
             type: "custom",

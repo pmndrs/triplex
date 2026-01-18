@@ -5,18 +5,21 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 export class DNDError extends Error {
-    multipleExports?: string[];
+  multipleExports?: string[];
 
-    constructor(public message: string, public type: string = 'unknown') {
-        super(message);
-        this.name = "DNDError";
-    }
+  constructor(
+    public message: string,
+    public type: string = "unknown",
+  ) {
+    super(message);
+    this.name = "DNDError";
+  }
 
-    toJSON() {
-        return {
-            message: this.message,
-            multipleExports: this.multipleExports,
-            type: this.type,
-        };
-    }
+  toJSON() {
+    return {
+      message: this.message,
+      multipleExports: this.multipleExports,
+      type: this.type,
+    };
+  }
 }

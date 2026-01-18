@@ -28,7 +28,6 @@ import { SceneLoader } from "../scene-loader";
 import { SwitchToComponentContext } from "./context";
 import { DebugAttributes } from "./debug";
 import { type Component } from "./types";
-import { useDND } from "@triplex/lib";
 
 export function App({
   files,
@@ -44,8 +43,6 @@ export function App({
     path: "",
     props: {},
   });
-
-  const { bindingsDND, isDragging } = useDND(send, component.exportName, component.path);
 
   const switchToComponent = useCallback((component: Component) => {
     startTransition(() => {
@@ -121,32 +118,7 @@ export function App({
           }
           resetKeys={[component]}
         >
-          <div
-            {...bindingsDND}
-            style={{ height: '100%', position: 'relative', width: '100%' }}
-          >
-            {isDragging && (
-              <div
-                style={{
-                  alignItems: "center",
-                  border: "4px dashed #569cd6",
-                  color: "#569cd6",
-                  display: "flex",
-                  flexDirection: "column",
-                  fontFamily: '"Segoe WPC", "Segoe UI", sans-serif',
-                  fontSize: "24px",
-                  fontWeight: "500",
-                  inset: "10px",
-                  justifyContent: "center",
-                  pointerEvents: "none",
-                  position: "absolute",
-                  textAlign: "center",
-                  zIndex: "99",
-                }}
-              >
-
-              </div>
-            )}
+          <div style={{ height: "100%", position: "relative", width: "100%" }}>
             <Suspense
               fallback={
                 <LoadingLogo

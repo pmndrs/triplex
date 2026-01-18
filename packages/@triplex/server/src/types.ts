@@ -20,7 +20,6 @@ export interface Transforms {
 export type ComponentType =
   | {
       exportName: string;
-      name: string;
       path: string;
       props: Record<string, unknown>;
       type: "custom";

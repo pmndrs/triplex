@@ -35,7 +35,7 @@ export const DropBox = ({
       <mesh
         {...ok}
         name="hello-world"
-        onClick={() => { }}
+        onClick={() => {}}
         onPointerOut={() => setHover(false)}
         onPointerOver={() => setHover(true)}
         position={position}

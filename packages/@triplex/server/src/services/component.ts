@@ -23,10 +23,10 @@ import {
 } from "../ast/jsx";
 import { getExportNameOrThrow } from "../ast/module";
 import { type ComponentRawType, type ComponentTarget } from "../types";
-import { inferExports } from "../util/module";
-import { padLines, parseJSON, toPascalCase } from "../util/string";
-import { omitFileExtension, prefixLocalPath } from "../util/path";
 import { DNDError } from "../util/errors";
+import { inferExports } from "../util/module";
+import { omitFileExtension, prefixLocalPath } from "../util/path";
+import { padLines, parseJSON, toPascalCase } from "../util/string";
 
 function guessComponentNameFromPath(path: string) {
   const name = basename(path)
@@ -249,11 +249,11 @@ export function add(
       const { column, line } = target
         ? addToJsxElement(sourceFile, target, component.name, component.props)
         : insertJsxElement(
-          sourceFile,
-          declaration,
-          component.name,
-          component.props,
-        );
+            sourceFile,
+            declaration,
+            component.name,
+            component.props,
+          );
 
       return {
         column,
@@ -344,8 +344,9 @@ export function add(
             ? `${importName}${aliasImportName ? ` as ${aliasImportName}` : ""}`
             : "";
 
-        const importDeclaration = `import ${defaultImport}${namedImports ? `{ ${namedImports} } ` : " "
-          }from "${moduleSpecifier}";`;
+        const importDeclaration = `import ${defaultImport}${
+          namedImports ? `{ ${namedImports} } ` : " "
+        }from "${moduleSpecifier}";`;
 
         sourceFile.insertText(0, importDeclaration);
       }
@@ -360,17 +361,17 @@ export function add(
       // For the freshly added JSX element.
       const { column, line } = target
         ? addToJsxElement(
-          sourceFile,
-          target,
-          aliasImportName || importName,
-          component.props,
-        )
+            sourceFile,
+            target,
+            aliasImportName || importName,
+            component.props,
+          )
         : insertJsxElement(
-          sourceFile,
-          declaration,
-          aliasImportName || importName,
-          component.props,
-        );
+            sourceFile,
+            declaration,
+            aliasImportName || importName,
+            component.props,
+          );
 
       return {
         column,
@@ -656,7 +657,10 @@ export function addComponentToEnd(
 
   // If no export name is provided and there are multiple exports, we need to ask the user to specify one.
   if (!defaultExport && exportNames.length > 1 && !exportName) {
-    const error = new DNDError(`Multiple exports found in ${componentPath}, please specify an export to use.`, 'multiple-exports');
+    const error = new DNDError(
+      `Multiple exports found in ${componentPath}, please specify an export to use.`,
+      "multiple-exports",
+    );
     error.multipleExports = exportNames;
     throw error;
   }
@@ -666,7 +670,9 @@ export function addComponentToEnd(
   }
 
   // Determine which export to use
-  const componentExportName = defaultExport ? "__default__" : exportName ?? exportNames[0];
+  const componentExportName = defaultExport
+    ? "__default__"
+    : (exportName ?? exportNames[0]);
 
   // Determine the import name
 
@@ -675,10 +681,16 @@ export function addComponentToEnd(
   }
 
   // Ensure the import exists
-  const componentImportName = ensureImport(sceneFile, componentPath, componentExportName);
+  const componentImportName = ensureImport(
+    sceneFile,
+    componentPath,
+    componentExportName,
+  );
 
   const components = [...sceneFile.getExportedDeclarations().keys()];
-  const sceneExportName = components.includes(activeScene || "") ? activeScene : components[0];
+  const sceneExportName = components.includes(activeScene || "")
+    ? activeScene
+    : components[0];
 
   if (!sceneExportName) {
     throw new DNDError(`No exports found in scene file`);
@@ -690,9 +702,18 @@ export function addComponentToEnd(
 
   insertAtEnd(sceneFile, jsxElement, newComponentJsx);
 }
-export function getUniqueImportName(componentExportName: string, componentPath: string, sceneFile: SourceFile) {
+export function getUniqueImportName(
+  componentExportName: string,
+  componentPath: string,
+  sceneFile: SourceFile,
+) {
   // Determine the import name
-  let componentImportName = componentExportName === "__default__" ? toPascalCase(basename(componentPath).replace(extname(componentPath), '')) : componentExportName;
+  let componentImportName =
+    componentExportName === "__default__"
+      ? toPascalCase(
+          basename(componentPath).replace(extname(componentPath), ""),
+        )
+      : componentExportName;
   let componentImportNameAddition = 0;
 
   // get all current imports/exports/variables to avoid name conflicts
@@ -700,25 +721,33 @@ export function getUniqueImportName(componentExportName: string, componentPath: 
     ...sceneFile.getImportDeclarations().flatMap((imp) => {
       return [
         ...imp.getNamedImports().map((ni) => ni.getName()),
-        ...imp.getDefaultImport() ? [imp.getDefaultImport()!.getText()] : [],
+        ...(imp.getDefaultImport() ? [imp.getDefaultImport()!.getText()] : []),
       ];
     }),
     ...sceneFile.getExportDeclarations().flatMap((exp) => {
-      return (
-        exp.getNamedExports().map((ne) => ne.getName())
-      );
+      return exp.getNamedExports().map((ne) => ne.getName());
     }),
-    ...sceneFile.getClasses().map((cls) => cls.getName()).filter((name): name is string => !!name),
-    ...sceneFile.getFunctions().map((fn) => fn.getName()).filter((name): name is string => !!name),
+    ...sceneFile
+      .getClasses()
+      .map((cls) => cls.getName())
+      .filter((name): name is string => !!name),
+    ...sceneFile
+      .getFunctions()
+      .map((fn) => fn.getName())
+      .filter((name): name is string => !!name),
     ...sceneFile.getVariableStatements().flatMap((vs) => {
       return vs.getDeclarations().map((vd) => vd.getName());
     }),
   ]);
   // check if export name is already taken. If it is, add a number suffix.
-  while (currentDeclarations.has(`${componentImportName}${componentImportNameAddition === 0 ? "" : '_' + componentImportNameAddition}`)) {
+  while (
+    currentDeclarations.has(
+      `${componentImportName}${componentImportNameAddition === 0 ? "" : "_" + componentImportNameAddition}`,
+    )
+  ) {
     componentImportNameAddition++;
   }
-  componentImportName = `${componentImportName}${componentImportNameAddition === 0 ? "" : '_' + componentImportNameAddition}`;
+  componentImportName = `${componentImportName}${componentImportNameAddition === 0 ? "" : "_" + componentImportNameAddition}`;
   return componentImportName;
 }
 
@@ -730,14 +759,18 @@ function ensureImport(
 ): string {
   const importName = getUniqueImportName(exportName, modulePath, sourceFile);
   const baseFolderPath = dirname(sourceFile.getFilePath());
-  const relativePath = omitFileExtension(prefixLocalPath(relative(baseFolderPath, modulePath)));
+  const relativePath = omitFileExtension(
+    prefixLocalPath(relative(baseFolderPath, modulePath)),
+  );
 
   const existingImport = sourceFile.getImportDeclaration(
-    (imp) => imp.getModuleSpecifierValue() === modulePath || imp.getModuleSpecifierValue() === relativePath,
+    (imp) =>
+      imp.getModuleSpecifierValue() === modulePath ||
+      imp.getModuleSpecifierValue() === relativePath,
   );
 
   if (!existingImport) {
-    if (exportName === '__default__') {
+    if (exportName === "__default__") {
       // add import from default
       sourceFile.addImportDeclaration({
         defaultImport: importName,
@@ -747,11 +780,16 @@ function ensureImport(
       // add import named
       sourceFile.addImportDeclaration({
         moduleSpecifier: relativePath,
-        namedImports: [{ alias: importName !== exportName ? importName : undefined, name: exportName }],
+        namedImports: [
+          {
+            alias: importName !== exportName ? importName : undefined,
+            name: exportName,
+          },
+        ],
       });
     }
   } else {
-    if (exportName === '__default__') {
+    if (exportName === "__default__") {
       // check default import exists and add it
       const defaultImport = existingImport.getDefaultImport();
 
@@ -766,7 +804,10 @@ function ensureImport(
       const hasImport = namedImports.some((ni) => ni.getName() === exportName);
 
       if (!hasImport) {
-        existingImport.addNamedImport({ alias: importName !== exportName ? importName : undefined, name: exportName });
+        existingImport.addNamedImport({
+          alias: importName !== exportName ? importName : undefined,
+          name: exportName,
+        });
       } else {
         return exportName;
       }

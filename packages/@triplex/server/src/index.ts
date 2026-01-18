@@ -64,11 +64,11 @@ import {
   type TriplexPorts,
 } from "./types";
 import { checkMissingDependencies } from "./util/deps";
+import { DNDError } from "./util/errors";
 import { resolveGitRepoVisibility } from "./util/git";
 import { getParam, getParamOptional } from "./util/params";
-import { getThumbnailPath } from "./util/thumbnail";
 import { resolveRemoteURL } from "./util/path";
-import { DNDError } from "./util/errors";
+import { getThumbnailPath } from "./util/thumbnail";
 
 export * from "./types";
 export { type PropGroupDef } from "./ast/prop-groupings";
@@ -348,13 +348,18 @@ export async function createServer({
   router.post("/scene/:path/add-component", async (context) => {
     const { path: scenePath } = context.params;
 
-    const body = await context.request.body().value as Record<string, string>;
+    const body = (await context.request.body().value) as Record<string, string>;
 
-    if (body.componentPath.endsWith('.ts') === false && body.componentPath.endsWith('.tsx') === false) {
+    if (
+      body.componentPath.endsWith(".ts") === false &&
+      body.componentPath.endsWith(".tsx") === false
+    ) {
       context.response.body = {
-        error: new DNDError(`Component path ${body.componentPath} must end with .ts or .tsx`),
+        error: new DNDError(
+          `Component path ${body.componentPath} must end with .ts or .tsx`,
+        ),
         status: "unmodified",
-        success: false
+        success: false,
       };
       return;
     }
@@ -365,13 +370,17 @@ export async function createServer({
 
     try {
       const [ids] = await sceneFile.edit((source) => {
-        return addComponentToEnd(source, body.activeScene, componentPath, body.exportName);
+        return addComponentToEnd(
+          source,
+          body.activeScene,
+          componentPath,
+          body.exportName,
+        );
       });
       context.response.body = { ...ids, success: true };
     } catch (error) {
       context.response.body = { error, status: "unmodified", success: false };
     }
-
   });
 
   router.post("/scene/new", (context) => {

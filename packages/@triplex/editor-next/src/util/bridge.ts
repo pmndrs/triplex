@@ -27,21 +27,21 @@ export interface FromVSCodeEvent {
   };
   "vscode:request-blur-element": void;
   "vscode:request-delete-element":
-  | {
-    astPath: string;
-    column: number;
-    line: number;
-    path: string;
-  }
-  | undefined;
+    | {
+        astPath: string;
+        column: number;
+        line: number;
+        path: string;
+      }
+    | undefined;
   "vscode:request-duplicate-element":
-  | {
-    astPath: string;
-    column: number;
-    line: number;
-    path: string;
-  }
-  | undefined;
+    | {
+        astPath: string;
+        column: number;
+        line: number;
+        path: string;
+      }
+    | undefined;
   "vscode:request-focus-element": {
     astPath: string;
     column: number;
@@ -49,21 +49,21 @@ export interface FromVSCodeEvent {
     path: string;
   };
   "vscode:request-group-elements":
-  | {
-    astPath: string;
-    column: number;
-    line: number;
-    path: string;
-  }
-  | undefined;
+    | {
+        astPath: string;
+        column: number;
+        line: number;
+        path: string;
+      }
+    | undefined;
   "vscode:request-jump-to-element":
-  | {
-    astPath: string;
-    column: number;
-    line: number;
-    path: string;
-  }
-  | undefined;
+    | {
+        astPath: string;
+        column: number;
+        line: number;
+        path: string;
+      }
+    | undefined;
   "vscode:request-open-component": {
     exportName: string;
     path: string;
@@ -75,26 +75,26 @@ export interface FromVSCodeEvent {
 
 export interface ToVSCodeEvent extends ClientSendEventData {
   "code-update":
-  | {
-    code: string;
-    fromLineNumber: number;
-    id: string;
-    path: string;
-    toLineNumber: number;
-    type: "replace";
-  }
-  | {
-    code: string;
-    id: string;
-    lineNumber: number;
-    path: string;
-    type: "add";
-  };
+    | {
+        code: string;
+        fromLineNumber: number;
+        id: string;
+        path: string;
+        toLineNumber: number;
+        type: "replace";
+      }
+    | {
+        code: string;
+        id: string;
+        lineNumber: number;
+        path: string;
+        type: "add";
+      };
   "component-insert": {
-    activeScene: string | undefined;
-    componentPath: string;
-    exportName?: string;
-    scenePath: string;
+    exportName: string;
+    insertingExportName: string;
+    insertingPath: string;
+    path: string;
   };
   "element-delete": {
     astPath: string;
@@ -166,7 +166,10 @@ export function sendVSCE<TEvent extends keyof ToVSCodeEvent>(
 
 let requestId = 0;
 /* lint */
-const requests: Map<number, { reject: (reason?: unknown) => void, resolve: (value: unknown) => void }> = new Map();
+const requests: Map<
+  number,
+  { reject: (reason?: unknown) => void; resolve: (value: unknown) => void }
+> = new Map();
 
 export function requestVSCE<S, TEvent extends keyof ToVSCodeEvent>(
   eventName: TEvent,
@@ -176,13 +179,20 @@ export function requestVSCE<S, TEvent extends keyof ToVSCodeEvent>(
 
   const promise = new Promise<unknown>((resolve, reject) => {
     requests.set(id, { reject, resolve });
-    vscode.postMessage({ data: { data, event: eventName, id }, eventName: "send-request" });
+    vscode.postMessage({
+      data: { data, event: eventName, id },
+      eventName: "send-request",
+    });
   });
 
   return promise as Promise<S>;
 }
 
-export function handleVSCERequestResponse(data: { error?: string, id: number; result: unknown; }) {
+export function handleVSCERequestResponse(data: {
+  error?: string;
+  id: number;
+  result: unknown;
+}) {
   const request = requests.get(data.id);
   if (request) {
     requests.delete(data.id);
