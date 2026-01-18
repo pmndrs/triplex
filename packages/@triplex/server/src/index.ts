@@ -5,7 +5,6 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
 import { Application, isHttpError, Router } from "@oakserver/oak";
 import { fg, initFeatureGates } from "@triplex/lib/fg";
 import { createForkLogger } from "@triplex/lib/log";
@@ -33,7 +32,6 @@ import { propGroupsDef } from "./ast/prop-groupings";
 import { createAI } from "./services/ai";
 import {
   add,
-  addComponentToEnd,
   commentComponent,
   create,
   deleteElement,
@@ -64,10 +62,8 @@ import {
   type TriplexPorts,
 } from "./types";
 import { checkMissingDependencies } from "./util/deps";
-import { DNDError } from "./util/errors";
 import { resolveGitRepoVisibility } from "./util/git";
 import { getParam, getParamOptional } from "./util/params";
-import { resolveRemoteURL } from "./util/path";
 import { getThumbnailPath } from "./util/thumbnail";
 
 export * from "./types";
@@ -343,44 +339,6 @@ export async function createServer({
     });
 
     context.response.body = { ...ids };
-  });
-
-  router.post("/scene/:path/add-component", async (context) => {
-    const { path: scenePath } = context.params;
-
-    const body = (await context.request.body().value) as Record<string, string>;
-
-    if (
-      body.componentPath.endsWith(".ts") === false &&
-      body.componentPath.endsWith(".tsx") === false
-    ) {
-      context.response.body = {
-        error: new DNDError(
-          `Component path ${body.componentPath} must end with .ts or .tsx`,
-        ),
-        status: "unmodified",
-        success: false,
-      };
-      return;
-    }
-
-    const componentPath = fileURLToPath(resolveRemoteURL(body.componentPath));
-
-    const sceneFile = project.getSourceFile(scenePath);
-
-    try {
-      const [ids] = await sceneFile.edit((source) => {
-        return addComponentToEnd(
-          source,
-          body.activeScene,
-          componentPath,
-          body.exportName,
-        );
-      });
-      context.response.body = { ...ids, success: true };
-    } catch (error) {
-      context.response.body = { error, status: "unmodified", success: false };
-    }
   });
 
   router.post("/scene/new", (context) => {

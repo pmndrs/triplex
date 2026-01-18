@@ -322,10 +322,9 @@ export class TriplexDocument implements vscode.CustomDocument {
           path: string;
           redoID: number;
           status: "modified";
-          success?: boolean;
           undoID: number;
         }
-      | { path: string; status: "unmodified"; success?: boolean },
+      | { path: string; status: "unmodified" },
   >(
     label: string,
     callback: () => Promise<TResponse> | TResponse,
@@ -342,9 +341,6 @@ export class TriplexDocument implements vscode.CustomDocument {
   ): Promise<Omit<TResponse, "redoID" | "undoID" | "path" | "status">> {
     const result = await callback();
 
-    if (result.success !== undefined && !result.success) {
-      return result;
-    }
     if (result.status === "unmodified") {
       return result;
     }
