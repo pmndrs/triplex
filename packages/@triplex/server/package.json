@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@react-three/drei": "^10.1.1",
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "10.0.0-alpha.1",
     "@react-three/rapier": "^2.1.0",
     "@triplex/lib": "0.69.19",
     "@triplex/websocks-server": "0.0.7",

@@ -36,7 +36,7 @@
     "zustand": "^4.3.2"
   },
   "devDependencies": {
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "10.0.0-alpha.1",
     "@react-three/xr": "^6.6.17",
     "@swc/cli": "^0.1.59",
     "@swc/core": "^1.6.5",

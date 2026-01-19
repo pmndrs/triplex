@@ -9,7 +9,7 @@
   "dependencies": {
     "@lumaai/luma-web": "^0.1.14",
     "@react-three/drei": "^10.1.1",
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "10.0.0-alpha.1",
     "@react-three/rapier": "^2.1.0",
     "@types/react": "^19.1.6",
     "@types/three": "^0.171.0",

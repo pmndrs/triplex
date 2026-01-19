@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@react-three/drei": "^10.1.1",
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "10.0.0-alpha.1",
     "@react-three/rapier": "^2.1.0",
     "@react-three/uikit": "^0.8.19",
     "@types/react": "^19.1.6",

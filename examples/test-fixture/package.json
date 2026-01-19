@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@react-three/drei": "^10.1.1",
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "10.0.0-alpha.1",
     "@react-three/uikit": "^0.8.19",
     "@react-three/xr": "^6.6.17",
     "@triplex/api": "workspace:*",

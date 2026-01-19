@@ -30,7 +30,7 @@
   "devDependencies": {
     "@babel/plugin-syntax-jsx": "^7.24.1",
     "@httptoolkit/httpolyglot": "^2.2.2",
-    "@react-three/fiber": "^9.1.2",
+    "@react-three/fiber": "10.0.0-alpha.1",
     "@swc/cli": "^0.1.59",
     "@swc/core": "^1.6.5",
     "@triplex/lib": "0.69.19",
