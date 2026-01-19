@@ -10,9 +10,9 @@
     "@react-three/drei": "^10.1.1",
     "@react-three/fiber": "10.0.0-alpha.1",
     "@types/react": "^19.1.6",
-    "@types/three": "^0.171.0",
+    "@types/three": "^0.182.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "three": "^0.172.0"
+    "three": "^0.182.0"
   }
 }
