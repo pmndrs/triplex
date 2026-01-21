@@ -1,6 +1,6 @@
 {
   "name": "@docs/triplex",
-  "version": "0.2.24",
+  "version": "0.2.25",
   "private": true,
   "description": "Your visual workspace for React / Three Fiber.",
   "license": "SEE LICENSE IN LICENSE",

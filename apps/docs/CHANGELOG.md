@@ -1,5 +1,11 @@
 # @docs/triplex
 
+## 0.2.25
+
+### Patch Changes
+
+- 0973475: Forced release.
+
 ## 0.2.24
 
 ### Patch Changes
