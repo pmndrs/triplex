@@ -42,6 +42,11 @@ jobs:
       - name: Install dependencies
         run: pnpm i
 
+      - name: Setup git user
+        run: |
+          git config user.name "triplex-bot"
+          git config user.email "124734075+triplex-bot@users.noreply.github.com"
+
       - name: Create release PR or publish to npm
         uses: changesets/action@v1
         with:
