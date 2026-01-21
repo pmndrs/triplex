@@ -1,5 +1,11 @@
 # @docs/triplex
 
+## 0.2.24
+
+### Patch Changes
+
+- 2a7c73c: Update internals.
+
 ## 0.2.23
 
 ### Patch Changes
