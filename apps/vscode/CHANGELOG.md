@@ -1,5 +1,14 @@
 # @triplex/vscode
 
+## 0.72.2
+
+### Patch Changes
+
+- 46fab87: Dragging files from the file explorer into the Triplex editor now adds components to the scene.
+- 46fab87: Link to other triplex packages.
+  - @triplex/server@0.72.2
+  - @triplex/client@0.70.48
+
 ## 0.2.57
 
 ### Patch Changes

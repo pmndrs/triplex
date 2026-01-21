@@ -1,6 +1,6 @@
 {
   "name": "@triplex/api",
-  "version": "0.1.4",
+  "version": "0.72.2",
   "description": "APIs to help build and debug your 2D and 3D components when inside Triplex.",
   "license": "SEE LICENSE IN LICENSE",
   "author": {

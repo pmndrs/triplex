@@ -1,6 +1,6 @@
 {
   "name": "@triplex/editor-next",
-  "version": "0.0.10",
+  "version": "0.72.2",
   "private": true,
   "description": "Your visual workspace for React / Three Fiber.",
   "license": "SEE LICENSE IN LICENSE",
@@ -29,7 +29,7 @@
     "@supabase/supabase-js": "^2.49.1",
     "@triplex/bridge": "0.70.12",
     "@triplex/lib": "0.69.19",
-    "@triplex/ux": "0.69.33",
+    "@triplex/ux": "0.72.2",
     "@triplex/websocks-client": "0.0.9",
     "bind-event-listener": "^3.0.0",
     "raf-schd": "^4.0.3",
@@ -43,7 +43,7 @@
     "zustand": "^4.3.2"
   },
   "devDependencies": {
-    "@triplex/server": "0.71.24",
+    "@triplex/server": "0.72.2",
     "@types/raf-schd": "^4.0.3",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5"

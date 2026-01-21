@@ -1,5 +1,7 @@
 # @triplex/renderer
 
+## 0.72.2
+
 ## 0.72.1
 
 ### Patch Changes

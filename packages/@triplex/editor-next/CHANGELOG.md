@@ -1,5 +1,13 @@
 # @triplex/editor-next
 
+## 0.72.2
+
+### Patch Changes
+
+- 98bd855: Resizing the element tree panel no longer gets stuck on the editor when moving very fast.
+- 98bd855: Imported components now show a "link" icon in the element tree to more easily find them against local components / elements.
+  - @triplex/ux@0.72.2
+
 ## 0.0.10
 
 ### Patch Changes

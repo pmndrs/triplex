@@ -1,5 +1,7 @@
 # @triplex/api
 
+## 0.72.2
+
 ## 0.1.4
 
 ### Patch Changes

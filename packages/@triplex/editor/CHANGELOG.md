@@ -1,5 +1,11 @@
 # @triplex/editor
 
+## 0.70.54
+
+### Patch Changes
+
+- @triplex/ux@0.72.2
+
 ## 0.70.53
 
 ### Patch Changes
