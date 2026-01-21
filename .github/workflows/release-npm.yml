@@ -45,10 +45,12 @@ jobs:
       - name: Create release PR or publish to npm
         uses: changesets/action@v1
         with:
-          createGithubReleases: false
           commit: "chore: update package versions"
-          title: "Release packages"
+          commitMode: "git-cli"
+          createGithubReleases: false
           publish: pnpm ci:publish
+          setupGitUser: false
+          title: "Release packages"
           version: pnpm ci:version
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
