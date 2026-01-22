@@ -1,5 +1,11 @@
 # @triplex/server
 
+## 0.72.3
+
+### Patch Changes
+
+- 642aede: Fix files being not able to be dragged onto the scene when the `components` config field was not defined.
+
 ## 0.72.2
 
 ## 0.71.24

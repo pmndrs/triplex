@@ -1,5 +1,14 @@
 # @triplex/vscode
 
+## 0.72.3
+
+### Patch Changes
+
+- 642aede: Fix files being not able to be dragged onto the scene when the `components` config field was not defined.
+- Updated dependencies [642aede]
+  - @triplex/server@0.72.3
+  - @triplex/client@0.70.49
+
 ## 0.72.2
 
 ### Patch Changes

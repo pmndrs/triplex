@@ -1,5 +1,11 @@
 # @triplex/editor-next
 
+## 0.72.3
+
+### Patch Changes
+
+- @triplex/ux@0.72.3
+
 ## 0.72.2
 
 ### Patch Changes
