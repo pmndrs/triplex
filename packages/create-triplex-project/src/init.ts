@@ -122,7 +122,7 @@ export async function init({
   // eslint-disable-next-line no-console
   console.log(`
                   Get Started: https://triplex.dev/docs/get-started
-                 Join Discord: https://discord.gg/ZZjjNvJ
+                 Join Discord: https://discord.gg/mfJJPZ4deK
   Install Triplex for VS Code: https://marketplace.visualstudio.com/items?itemName=trytriplex.triplex-vsce
 `);
 

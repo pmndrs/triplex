@@ -2,7 +2,7 @@
 
 <img aria-label="Triplex" src="https://github.com/pmndrs/triplex/blob/main/logo-light.svg#gh-dark-mode-only" height="70" />
 
-[![Twitter](https://img.shields.io/twitter/follow/pmndrs?label=%40pmndrs&style=flat&colorA=000000&colorB=000000&logo=twitter&logoColor=000000)](https://twitter.com/pmndrs) [![Discord](https://img.shields.io/discord/740090768164651008?style=flat&colorA=000000&colorB=000000&label=discord&logo=discord&logoColor=000000)](https://discord.gg/ZZjjNvJ)
+[![Twitter](https://img.shields.io/twitter/follow/pmndrs?label=%40pmndrs&style=flat&colorA=000000&colorB=000000&logo=twitter&logoColor=000000)](https://twitter.com/pmndrs) [![Discord](https://img.shields.io/discord/740090768164651008?style=flat&colorA=000000&colorB=000000&label=discord&logo=discord&logoColor=000000)](https://discord.gg/mfJJPZ4deK)
 
 Triplex is the open source visual workspace for building [React](https://react.dev/) / [Three Fiber](https://r3f.docs.pmnd.rs/) components. Build 2D and 3D components using its visual and input controls. Jump down to code when you need.
 
@@ -18,7 +18,7 @@ Visit https://triplex.dev/docs/building-your-scene to learn more.
 
 ## Contributions
 
-Contributions are welcomed! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) to get started. If you haven't already make sure to join the Poimandres [Discord community](https://discord.gg/ZZjjNvJ).
+Contributions are welcomed! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) to get started. If you haven't already make sure to join the Poimandres [Discord community](https://discord.gg/mfJJPZ4deK).
 
 <br />
 <a href="https://vercel.com/oss">

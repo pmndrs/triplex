@@ -28,7 +28,7 @@ export function InlineErrorBoundary({
           <div className="mx-auto flex items-center gap-1.5">
             <a
               className="text-link hover:underline"
-              href="https://discord.gg/ZZjjNvJ"
+              href="https://discord.gg/mfJJPZ4deK"
             >
               Join Discord
             </a>

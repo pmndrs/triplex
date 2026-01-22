@@ -2,7 +2,7 @@
 
 Thank you for considering a contribution to Triplex! Pull requests, issues and comments are welcome. Everything in Triplex is open source so dive into what you think would be fun to work on!
 
-If you're looking for an issue to work on have a look for the "[Contribution ready](https://github.com/pmndrs/triplex/labels/Contribution%20ready)" labelled issues or reach out on the Poimandres [Discord community](https://discord.gg/ZZjjNvJ).
+If you're looking for an issue to work on have a look for the "[Contribution ready](https://github.com/pmndrs/triplex/labels/Contribution%20ready)" labelled issues or reach out on the Poimandres [Discord community](https://discord.gg/mfJJPZ4deK).
 
 ## Local Setup
 

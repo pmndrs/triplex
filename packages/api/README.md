@@ -1,6 +1,6 @@
 # @triplex/api
 
-> This package is an experiment. Found it useful? Give feedback in the [Triplex Discord community](https://discord.gg/ZZjjNvJ).
+> This package is an experiment. Found it useful? Give feedback in the [Triplex Discord community](https://discord.gg/mfJJPZ4deK).
 
 ## Installation
 
