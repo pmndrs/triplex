@@ -179,7 +179,7 @@ importers:
         specifier: 0.69.19
         version: link:../../packages/lib
       '@triplex/ux':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../../packages/ux
       '@types/cors':
         specifier: ^2.8.17
@@ -261,13 +261,13 @@ importers:
   apps/electron:
     dependencies:
       '@triplex/client':
-        specifier: 0.70.48
+        specifier: 0.70.49
         version: link:../../packages/@triplex/client
       '@triplex/editor':
-        specifier: 0.70.54
+        specifier: 0.70.55
         version: link:../../packages/@triplex/editor
       '@triplex/server':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../../packages/@triplex/server
       create-triplex-project:
         specifier: 0.70.13
@@ -334,17 +334,17 @@ importers:
   apps/vscode:
     dependencies:
       '@triplex/client':
-        specifier: 0.70.48
+        specifier: 0.70.49
         version: link:../../packages/@triplex/client
       '@triplex/server':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../../packages/@triplex/server
     devDependencies:
       '@sentry/node':
         specifier: ^8.30.0
         version: 8.30.0
       '@triplex/editor-next':
-        specifier: ^0.72.2
+        specifier: ^0.72.3
         version: link:../../packages/@triplex/editor-next
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -906,7 +906,7 @@ importers:
         specifier: 0.70.12
         version: link:../../bridge
       '@triplex/renderer':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../../renderer
       '@vitejs/plugin-react':
         specifier: ^4.4.1
@@ -937,7 +937,7 @@ importers:
         specifier: 0.69.19
         version: link:../../lib
       '@triplex/server':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../server
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1021,7 +1021,7 @@ importers:
         specifier: 0.69.19
         version: link:../../lib
       '@triplex/ux':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../../ux
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1061,7 +1061,7 @@ importers:
         specifier: ^14.0.0
         version: 14.0.0(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@triplex/server':
-        specifier: ^0.72.2
+        specifier: ^0.72.3
         version: link:../server
       '@types/react':
         specifier: ^19.0.8
@@ -1124,7 +1124,7 @@ importers:
         specifier: 0.69.19
         version: link:../../lib
       '@triplex/ux':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../../ux
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1161,7 +1161,7 @@ importers:
         version: 4.5.7(@types/react@19.1.6)(react@19.1.0)
     devDependencies:
       '@triplex/server':
-        specifier: 0.72.2
+        specifier: 0.72.3
         version: link:../server
       '@types/raf-schd':
         specifier: ^4.0.3
