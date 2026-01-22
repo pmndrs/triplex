@@ -288,6 +288,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://triplex.dev/docs/api-reference/config-options/components</loc>
+    <lastmod>2026-01-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://triplex.dev/docs/api-reference/config-options/define</loc>
     <lastmod>2024-10-24</lastmod>
     <changefreq>monthly</changefreq>
@@ -295,7 +301,7 @@
   </url>
   <url>
     <loc>https://triplex.dev/docs/api-reference/config-options/files</loc>
-    <lastmod>2024-10-30</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
