@@ -39,6 +39,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: "package.json"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Setup pnpm config
         run: pnpm config set store-dir $PNPM_CACHE_FOLDER
@@ -63,4 +64,4 @@ jobs:
           version: pnpm ci:version
         env:
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true

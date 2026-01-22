@@ -13,7 +13,7 @@
   "scripts": {
     "build": "pnpm clean && pnpm --filter @triplex/* --filter create-triplex-project --filter triplex-vsce build",
     "build:types": "pnpm --filter @triplex/* --filter create-triplex-project typedef",
-    "ci:publish": "pnpm build && pnpm build:types && node ./scripts/ensure-clean-git.js && pnpm clean:drop-folders && pnpm publish --recursive --access=public --no-git-checks && changeset tag",
+    "ci:publish": "pnpm build && pnpm build:types && node ./scripts/ensure-clean-git.js && pnpm clean:drop-folders && pnpm publish --recursive --access=public --no-git-checks --provenance && changeset tag",
     "ci:version": "changeset version && pnpm install --lockfile-only",
     "clean": "pnpm -r exec rimraf dist out targets playwright-report test-results",
     "clean:drop-folders": "pnpm --filter @triplex/* --filter create-triplex-project --filter triplex-vsce -r exec rimraf --glob src/** dist/**/__tests__ dist/**/__test__ --impl=move-remove --max-retries=100",
