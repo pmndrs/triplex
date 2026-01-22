@@ -85,7 +85,7 @@
   </url>
   <url>
     <loc>https://triplex.dev/docs/get-started</loc>
-    <lastmod>2026-01-04</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -193,7 +193,7 @@
   </url>
   <url>
     <loc>https://triplex.dev/docs/building-your-scene/webxr</loc>
-    <lastmod>2026-01-04</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -247,7 +247,7 @@
   </url>
   <url>
     <loc>https://triplex.dev/docs/building-your-scene/console-logs/debug-panel</loc>
-    <lastmod>2026-01-04</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -331,7 +331,7 @@
   </url>
   <url>
     <loc>https://triplex.dev/blog/2025-june-update</loc>
-    <lastmod>2026-01-04</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -349,7 +349,7 @@
   </url>
   <url>
     <loc>https://triplex.dev/blog/triplex-for-vscode</loc>
-    <lastmod>2026-01-04</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -391,13 +391,13 @@
   </url>
   <url>
     <loc>https://triplex.dev/blog/v0.61.0-drag-n-drop-file-tabs</loc>
-    <lastmod>2026-01-04</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://triplex.dev/blog/v0.62.0-the-one-with-linux</loc>
-    <lastmod>2026-01-04</lastmod>
+    <lastmod>2026-01-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
