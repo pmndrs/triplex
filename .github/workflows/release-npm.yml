@@ -9,6 +9,10 @@ env:
   CI: true
   PNPM_CACHE_FOLDER: .pnpm-store
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
 jobs:
   release:
     timeout-minutes: 5
