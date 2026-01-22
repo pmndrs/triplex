@@ -58,7 +58,7 @@ jobs:
           commit: "chore: update package versions"
           commitMode: "git-cli"
           createGithubReleases: false
-          publish: pnpm ci:publish
+          publish: rm -f .npmrc && pnpm ci:publish
           setupGitUser: false
           title: "Release packages"
           version: pnpm ci:version
