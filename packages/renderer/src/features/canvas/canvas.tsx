@@ -54,7 +54,8 @@ export function Canvas({ children, ...props }: CanvasProps) {
 
   return (
     <FiberCanvas
-      shadows
+      renderer={window.triplex.webgpu ? "webgpu" : undefined}
+      shadows="percentage"
       {...props}
       raycaster={{
         ...props.raycaster,

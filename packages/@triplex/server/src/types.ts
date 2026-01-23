@@ -202,6 +202,12 @@ export interface TriplexConfig {
    * See: https://triplex.dev/docs/api-reference/config-options/public-dir
    */
   publicDir?: string;
+  /**
+   * Enables WebGPU support for React Three Fiber components.
+   *
+   * See: https://triplex.dev/docs/api-reference/config-options/webgpu
+   */
+  webgpu?: boolean;
 }
 
 export interface RendererManifest {

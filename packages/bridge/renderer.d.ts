@@ -13,5 +13,6 @@ declare interface Window {
     readonly preload: {
       readonly reactThreeFiber: boolean;
     };
+    readonly webgpu: boolean;
   };
 }

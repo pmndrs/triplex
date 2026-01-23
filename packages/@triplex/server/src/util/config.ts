@@ -36,6 +36,7 @@ const schema = object({
   provider: optional(string()),
   publicDir: optional(string()),
   renderer: optional(string()),
+  webgpu: optional(boolean()),
 });
 
 export function getConfig(_cwd: string): ReconciledTriplexConfig {
@@ -99,6 +100,7 @@ export function getConfig(_cwd: string): ReconciledTriplexConfig {
     provider,
     publicDir,
     renderer,
+    webgpu: config.webgpu || false,
   };
 }
 
