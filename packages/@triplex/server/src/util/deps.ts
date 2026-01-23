@@ -136,8 +136,8 @@ function getVersionRequirements(
   fiberVersion: string | null,
 ): Record<string, VersionRange> {
   if (!fiberVersion) {
-    // Default to v8 requirements if fiber isn't installed
-    return fiberVersionRequirements[8];
+    // Fiber is optional, so don't enforce version requirements if it's not installed
+    return {};
   }
 
   const majorVersion = getMajorVersion(fiberVersion);
