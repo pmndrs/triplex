@@ -6,6 +6,7 @@
  */
 declare interface Window {
   readonly triplex: {
+    readonly config: import("../@triplex/server").ReconciledTriplexConfig;
     readonly env: {
       readonly mode: "webxr" | "default";
       state: "edit" | "pause" | "play";
@@ -13,6 +14,5 @@ declare interface Window {
     readonly preload: {
       readonly reactThreeFiber: boolean;
     };
-    readonly webgpu: boolean;
   };
 }

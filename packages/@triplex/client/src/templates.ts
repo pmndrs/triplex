@@ -98,6 +98,7 @@ export const scripts = {
 
     async function initialize() {
       window.triplex = JSON.parse(\`${JSON.stringify({
+        config: template.config,
         env: { mode: "default", state: "edit" },
         preload: template.preload,
       })}\`);
@@ -241,6 +242,7 @@ export const scripts = {
 
     async function initialize() {
       window.triplex = JSON.parse(\`${JSON.stringify({
+        config: template.config,
         env: { mode: "webxr", state: "edit" },
         preload: template.preload,
       })}\`);
