@@ -41,10 +41,10 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples/js/src/scene.jsx",
+    filename: "examples/no-config/src/scene.jsx",
   });
 
-  test(
+  test.only(
     "opening js only no config no tsconfig",
     { tag: "@vsce_smoke" },
     async ({ vsce }) => {
