@@ -46,12 +46,17 @@ export async function initFeatureGates({
       { userID: userId },
       {
         environment: { tier: environment },
-        networkConfig: { networkTimeoutMs: 2500, preventAllNetworkTraffic: environment === "local" },
+        networkConfig: {
+          networkTimeoutMs: 2500,
+          preventAllNetworkTraffic: environment === "local",
+        },
         overrideAdapter,
       },
     );
 
     await client.initializeAsync();
+
+    instance = client;
   } catch (error) {
     // Ignore initialization errors to prevent blocking app startup but report to console for now
     // eslint-disable-next-line no-console

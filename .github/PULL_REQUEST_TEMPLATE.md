@@ -6,4 +6,4 @@
 
 <!-- Check the actions to run them when commits are pushed to your branch -->
 
-- [ ] /end-to-end-tests
+- [x] /end-to-end-tests
