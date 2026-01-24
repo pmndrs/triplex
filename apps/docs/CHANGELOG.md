@@ -1,5 +1,13 @@
 # @docs/triplex
 
+## 0.2.27
+
+### Patch Changes
+
+- Updated dependencies [7d42634]
+  - @triplex/lib@0.69.20
+  - @triplex/ux@0.72.4
+
 ## 0.2.26
 
 ### Patch Changes
