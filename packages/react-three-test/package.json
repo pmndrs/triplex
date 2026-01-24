@@ -9,7 +9,7 @@
     "typedef": "echo \"not implemented\""
   },
   "dependencies": {
-    "@react-three/test-renderer": "^9.1.0",
+    "@react-three/test-renderer": "^10.0.0-alpha.2",
     "@testing-library/dom": "^10.4.0"
   },
   "devDependencies": {

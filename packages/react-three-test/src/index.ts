@@ -16,7 +16,7 @@ interface TreeNode {
   type: string;
 }
 
-// @ts-expect-error - Ignore global variable in test.
+// @ts-ignore - Ignore global variable in test.
 global.IS_REACT_ACT_ENVIRONMENT = true;
 
 function find(

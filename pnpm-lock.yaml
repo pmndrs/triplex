@@ -1418,8 +1418,8 @@ importers:
         specifier: '>=8.0.0'
         version: 9.1.2(@types/react@19.1.6)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.182.0)
       '@react-three/test-renderer':
-        specifier: ^9.1.0
-        version: 9.1.0(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.182.0))(react@19.2.3)(three@0.182.0)
+        specifier: ^10.0.0-alpha.2
+        version: 10.0.3(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.182.0))(react@19.2.3)(three@0.182.0)
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.0
@@ -3522,12 +3522,13 @@ packages:
       react: ^19.0.0
       three: '>=0.159.0'
 
-  '@react-three/test-renderer@9.1.0':
-    resolution: {integrity: sha512-bLjG+cdpVW69wG1W3TuziHrHvA1JQbLesYddY94QMaFF8yzpgwovWK8hGaHWBET1dvsCPIOWVNYHbKAbRj2xSg==}
+  '@react-three/test-renderer@10.0.3':
+    resolution: {integrity: sha512-qqg4dD5odCviJZINsnVjNPQHPDXgBRmLoiWu20K+3721klqfMVt42z3Hulszi257uM8HN64qsW+Hm1Ph7ruZug==}
+    deprecated: Major was released in error with no changes
     peerDependencies:
-      '@react-three/fiber': '>=9.0.0'
+      '@react-three/fiber': '>=8.7.3'
       react: ^19.0.0
-      three: '>=0.156'
+      three: '>=0.126'
 
   '@react-three/uikit@0.8.19':
     resolution: {integrity: sha512-h9dshcQteBBUHO800UXCNDKHfZuJNLppn88lvGDdMlms8eD1Tba3Ljninbu87IppNFrhRGOCllqAXtfcWPgraQ==}
@@ -12629,7 +12630,7 @@ snapshots:
       three: 0.182.0
       three-stdlib: 2.36.0(three@0.182.0)
 
-  '@react-three/test-renderer@9.1.0(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.182.0))(react@19.2.3)(three@0.182.0)':
+  '@react-three/test-renderer@10.0.3(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.182.0))(react@19.2.3)(three@0.182.0)':
     dependencies:
       '@react-three/fiber': 9.1.2(@types/react@19.1.6)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.182.0)
       react: 19.2.3
