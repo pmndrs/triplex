@@ -31,9 +31,9 @@ test("updating component from another file", async ({ getFile, vsce }) => {
   ).not.toHaveClass(/dirty/);
 
   // Assert the expected changes were persisted.
-  expect(
-    getFile("examples-private/test-fixture/src/geometry/box.tsx"),
-  ).toContain("scale={0.5}");
+  expect(getFile("examples/test-fixture/src/geometry/box.tsx")).toContain(
+    "scale={0.5}",
+  );
 });
 
 test("external update can be undone in the editor", async ({

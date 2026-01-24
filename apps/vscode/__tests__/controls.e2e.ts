@@ -66,7 +66,7 @@ test("lights turned on", async ({ vsce }) => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/react-roots.tsx",
+    filename: "examples/test-fixture/src/react-roots.tsx",
   });
 
   test("remove three fiber controls when switching to a no canvas component", async ({

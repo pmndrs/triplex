@@ -18,7 +18,7 @@ test("webxr panel ready", async ({ vsce }) => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/react-only/src/app.tsx",
+    filename: "examples/react-only/src/app.tsx",
   });
 
   test("webxr panel needs setup", async ({ vsce }) => {
