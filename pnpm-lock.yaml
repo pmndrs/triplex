@@ -407,138 +407,6 @@ importers:
         specifier: ^6.0.7
         version: 6.3.5(@types/node@22.15.29)(jiti@1.21.6)(tsx@4.19.2)(yaml@2.5.1)
 
-  examples-private/error-renderer:
-    dependencies:
-      '@react-three/fiber':
-        specifier: ^9.1.2
-        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
-      '@types/react':
-        specifier: ^19.0.8
-        version: 19.1.6
-      '@types/three':
-        specifier: ^0.171.0
-        version: 0.171.0
-      react:
-        specifier: ^19.0.0
-        version: 19.1.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.1.0(react@19.1.0)
-      three:
-        specifier: ^0.172.0
-        version: 0.172.0
-
-  examples-private/js:
-    dependencies:
-      '@react-three/drei':
-        specifier: ^10.1.1
-        version: 10.1.1(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(@types/three@0.171.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
-      '@react-three/fiber':
-        specifier: ^9.1.2
-        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
-      '@types/react':
-        specifier: ^19.0.8
-        version: 19.1.6
-      '@types/three':
-        specifier: ^0.171.0
-        version: 0.171.0
-      react:
-        specifier: ^19.0.0
-        version: 19.1.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.1.0(react@19.1.0)
-      three:
-        specifier: ^0.172.0
-        version: 0.172.0
-
-  examples-private/missing-deps:
-    dependencies:
-      '@types/react':
-        specifier: ^19.0.8
-        version: 19.1.6
-      '@types/three':
-        specifier: ^0.171.0
-        version: 0.171.0
-
-  examples-private/no-config:
-    dependencies:
-      '@react-three/fiber':
-        specifier: ^9.1.2
-        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
-      '@types/react':
-        specifier: ^19.0.8
-        version: 19.1.6
-      '@types/three':
-        specifier: ^0.171.0
-        version: 0.171.0
-      react:
-        specifier: ^19.0.0
-        version: 19.1.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.1.0(react@19.1.0)
-      three:
-        specifier: ^0.172.0
-        version: 0.172.0
-
-  examples-private/postcss-invalid:
-    dependencies:
-      '@types/react':
-        specifier: ^19.0.8
-        version: 19.1.6
-      react:
-        specifier: ^19.0.0
-        version: 19.1.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.1.0(react@19.1.0)
-
-  examples-private/react-only:
-    dependencies:
-      '@types/react':
-        specifier: ^19.0.8
-        version: 19.1.6
-      react:
-        specifier: ^19.0.0
-        version: 19.1.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.1.0(react@19.1.0)
-
-  examples-private/test-fixture:
-    dependencies:
-      '@react-three/drei':
-        specifier: ^10.1.1
-        version: 10.1.1(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(@types/three@0.171.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
-      '@react-three/fiber':
-        specifier: ^9.1.2
-        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
-      '@react-three/uikit':
-        specifier: ^0.8.19
-        version: 0.8.19(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(react@19.1.0)(three@0.172.0)
-      '@react-three/xr':
-        specifier: ^6.6.17
-        version: 6.6.20(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
-      '@triplex/api':
-        specifier: workspace:*
-        version: link:../../packages/api
-      '@types/react':
-        specifier: ^19.0.8
-        version: 19.1.6
-      '@types/three':
-        specifier: ^0.171.0
-        version: 0.171.0
-      react:
-        specifier: ^19.0.0
-        version: 19.1.0
-      react-dom:
-        specifier: ^19.0.0
-        version: 19.1.0(react@19.1.0)
-      three:
-        specifier: ^0.172.0
-        version: 0.172.0
-
   examples/caustics:
     dependencies:
       '@react-three/drei':
@@ -571,6 +439,27 @@ importers:
       '@react-three/drei':
         specifier: ^10.1.1
         version: 10.1.1(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(@types/three@0.171.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@react-three/fiber':
+        specifier: ^9.1.2
+        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.1.6
+      '@types/three':
+        specifier: ^0.171.0
+        version: 0.171.0
+      react:
+        specifier: ^19.0.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.1.0(react@19.1.0)
+      three:
+        specifier: ^0.172.0
+        version: 0.172.0
+
+  examples/error-renderer:
+    dependencies:
       '@react-three/fiber':
         specifier: ^9.1.2
         version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
@@ -649,6 +538,30 @@ importers:
       tailwindcss:
         specifier: ^3.2.4
         version: 3.3.2(ts-node@10.9.1(@swc/core@1.6.5(@swc/helpers@0.5.15))(@types/node@22.15.29)(typescript@5.8.3))
+      three:
+        specifier: ^0.172.0
+        version: 0.172.0
+
+  examples/js:
+    dependencies:
+      '@react-three/drei':
+        specifier: ^10.1.1
+        version: 10.1.1(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(@types/three@0.171.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@react-three/fiber':
+        specifier: ^9.1.2
+        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.1.6
+      '@types/three':
+        specifier: ^0.171.0
+        version: 0.171.0
+      react:
+        specifier: ^19.0.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.1.0(react@19.1.0)
       three:
         specifier: ^0.172.0
         version: 0.172.0
@@ -737,6 +650,60 @@ importers:
         specifier: ^0.172.0
         version: 0.172.0
 
+  examples/missing-deps:
+    dependencies:
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.1.6
+      '@types/three':
+        specifier: ^0.171.0
+        version: 0.171.0
+
+  examples/no-config:
+    dependencies:
+      '@react-three/fiber':
+        specifier: ^9.1.2
+        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.1.6
+      '@types/three':
+        specifier: ^0.171.0
+        version: 0.171.0
+      react:
+        specifier: ^19.0.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.1.0(react@19.1.0)
+      three:
+        specifier: ^0.172.0
+        version: 0.172.0
+
+  examples/postcss-invalid:
+    dependencies:
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.1.6
+      react:
+        specifier: ^19.0.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.1.0(react@19.1.0)
+
+  examples/react-only:
+    dependencies:
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.1.6
+      react:
+        specifier: ^19.0.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.1.0(react@19.1.0)
+
   examples/react-router-declarative:
     dependencies:
       react:
@@ -809,6 +776,39 @@ importers:
       three-custom-shader-material:
         specifier: ^6.3.0
         version: 6.3.0(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(react@19.1.0)(three@0.172.0)
+
+  examples/test-fixture:
+    dependencies:
+      '@react-three/drei':
+        specifier: ^10.1.1
+        version: 10.1.1(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(@types/three@0.171.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@react-three/fiber':
+        specifier: ^9.1.2
+        version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@react-three/uikit':
+        specifier: ^0.8.19
+        version: 0.8.19(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(react@19.1.0)(three@0.172.0)
+      '@react-three/xr':
+        specifier: ^6.6.17
+        version: 6.6.20(@react-three/fiber@9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0))(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.172.0)
+      '@triplex/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@types/react':
+        specifier: ^19.0.8
+        version: 19.1.6
+      '@types/three':
+        specifier: ^0.171.0
+        version: 0.171.0
+      react:
+        specifier: ^19.0.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.1.0(react@19.1.0)
+      three:
+        specifier: ^0.172.0
+        version: 0.172.0
 
   examples/uikit:
     dependencies:

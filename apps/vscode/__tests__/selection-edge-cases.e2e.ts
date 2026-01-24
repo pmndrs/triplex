@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/untyped.tsx",
+    filename: "examples/test-fixture/src/untyped.tsx",
   });
 
   test("untyped host element loads props", async ({ vsce }) => {

@@ -2,7 +2,6 @@ ignorePatchFailures: false
 packages:
   - "apps/*"
   - "examples/*"
-  - "examples-private/*"
   - "packages/*"
   - "packages/*/*"
   - "!packages/create-triplex-project/*"

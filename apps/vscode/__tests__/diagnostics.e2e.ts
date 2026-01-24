@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/geometry/syntax-error.tsx",
+    filename: "examples/test-fixture/src/geometry/syntax-error.tsx",
   });
 
   test("should show syntax error splash when opening", async ({ vsce }) => {

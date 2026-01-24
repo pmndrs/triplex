@@ -21,7 +21,7 @@ test("resizing the scene panel", async ({ vsce }) => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/controls.tsx",
+    filename: "examples/test-fixture/src/controls.tsx",
   });
 
   test("component controls updates prop value", async ({ vsce }) => {

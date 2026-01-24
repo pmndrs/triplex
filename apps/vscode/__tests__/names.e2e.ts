@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/names.tsx",
+    filename: "examples/test-fixture/src/names.tsx",
   });
 
   test("host element with a name", async ({ vsce }) => {
@@ -22,7 +22,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/names.tsx",
+    filename: "examples/test-fixture/src/names.tsx",
   });
 
   test("custom element with a name", async ({ vsce }) => {

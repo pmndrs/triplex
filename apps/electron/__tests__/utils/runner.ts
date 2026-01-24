@@ -109,7 +109,7 @@ const test = _test.extend<{
 }>({
   electron: async ({ file }, use, testInfo) => {
     const { app, logs, window } = await launch(
-      file.project || "examples-private/test-fixture",
+      file.project || "examples/test-fixture",
       file,
     );
     const page = new EditorPage(window, testInfo);

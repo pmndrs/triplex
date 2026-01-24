@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/react-roots.tsx",
+    filename: "examples/test-fixture/src/react-roots.tsx",
   });
 
   test("switch to editor camera when viewing react-dom component", async ({

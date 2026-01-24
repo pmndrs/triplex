@@ -11,8 +11,7 @@
       "debugWebviews": true,
       "args": [
         "${workspaceFolder}/examples",
-        "${workspaceFolder}/examples-private",
-        "${workspaceFolder}/examples-private/test-fixture/src/scene.tsx",
+        "${workspaceFolder}/examples/test-fixture/src/scene.tsx",
         "--new-window",
         "--extensionDevelopmentPath=${workspaceFolder}/apps/vscode",
         "--enable-coi"

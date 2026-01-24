@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/react-only/src/app.tsx",
+    filename: "examples/react-only/src/app.tsx",
   });
 
   test(
