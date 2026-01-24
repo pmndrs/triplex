@@ -20,7 +20,7 @@ test("play mode defaults to default camera", async ({ vsce }) => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/react-roots.tsx",
+    filename: "examples/test-fixture/src/react-roots.tsx",
   });
 
   test("default to default camera for react root", async ({ vsce }) => {

@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/scroll-drei.tsx",
+    filename: "examples/test-fixture/src/scroll-drei.tsx",
   });
 
   test("scroll controls loads", async ({ vsce }) => {
@@ -21,7 +21,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/sab.tsx",
+    filename: "examplesxture/src/sab.tsx",
   });
 
   test(
@@ -41,7 +41,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/no-config/src/scene.jsx",
+    filename: "examplesig/src/scene.jsx",
   });
 
   test(
@@ -64,7 +64,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/js/src/scene.jsx",
+    filename: "examplesscene.jsx",
   });
 
   test(
@@ -87,7 +87,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/missing-deps/src/app.tsx",
+    filename: "examples-deps/src/app.tsx",
   });
 
   test("missing dependencies splash screen", async ({ vsce }) => {
@@ -102,7 +102,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/missing-deps-deno/src/app.tsx",
+    filename: "examples-deps-deno/src/app.tsx",
   });
 
   test("missing deno deps shows arg", async ({ vsce }) => {

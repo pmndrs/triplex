@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/controls.tsx",
+    filename: "examples/test-fixture/src/controls.tsx",
   });
 
   /**
@@ -44,16 +44,13 @@ test.describe(() => {
     await vsce.codelens("TestHMRExternal").click();
     const { scene } = vsce.resolveEditor();
 
-    await setExternalFile(
-      "examples-private/test-fixture/src/util/external.tsx",
-      () => {
-        return `
+    await setExternalFile("examples/test-fixture/src/util/external.tsx", () => {
+      return `
           export function color() {
             return "red" as const;
           }
         `;
-      },
-    );
+    });
 
     const element = scene.locator.getByTestId("component-props");
     await expect(element).toContainText(`"color":"red"`);

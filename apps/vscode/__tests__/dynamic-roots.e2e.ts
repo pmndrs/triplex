@@ -9,7 +9,7 @@ import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/react-roots.tsx",
+    filename: "examples/test-fixture/src/react-roots.tsx",
   });
 
   test("component with canvas component and sibling HTML", async ({ vsce }) => {
@@ -39,7 +39,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/component-roots.tsx",
+    filename: "examplesxture/src/component-roots.tsx",
   });
 
   test("component with three react root from another module", async ({
@@ -69,7 +69,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/selection-edge-case.tsx",
+    filename: "examplesxture/src/selection-edge-case.tsx",
   });
 
   test("unknown custom component but resolved host elements", async ({

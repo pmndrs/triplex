@@ -20,7 +20,7 @@ test("focusing an element", async ({ vsce }) => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/lights.tsx",
+    filename: "examples/test-fixture/src/lights.tsx",
   });
 
   test("focusing a light", async ({ vsce }) => {
@@ -90,7 +90,7 @@ test("duplicating an element should be selected", async ({ vsce }) => {
 
 test.describe("react dom", () => {
   test.use({
-    filename: "examples-private/test-fixture/src/component-roots.tsx",
+    filename: "examplesxture/src/component-roots.tsx",
   });
 
   test("selecting a host element", async ({ vsce }) => {
@@ -148,7 +148,7 @@ test.describe("react dom", () => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/selection-edge-case.tsx",
+    filename: "examplesxture/src/selection-edge-case.tsx",
   });
 
   test("selecting a host element inside a child custom component where both are rendered by the same component", async ({
@@ -178,7 +178,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-private/test-fixture/src/meshes.tsx",
+    filename: "examplesxture/src/meshes.tsx",
   });
 
   test("selecting a batched mesh", async ({ vsce }) => {

@@ -117,8 +117,8 @@ async function launch({
   const app = await launchElectronWithRetry({
     args: [
       ...args,
-      join(process.cwd(), "examples-private/test-fixture"),
-      join(process.cwd(), "examples-private/test-fixture/src/scene.tsx"),
+      join(process.cwd(), "examples/test-fixture"),
+      join(process.cwd(), "examplesxture/src/scene.tsx"),
       process.env.CI ? "--headless" : "",
       // Args found from https://github.com/microsoft/playwright/issues/22351
       "--disable-gpu-sandbox", // https://github.com/microsoft/vscode-test/issues/221
@@ -194,7 +194,7 @@ const test = base.extend<
   }
 >({
   fg: [{}, { option: true, scope: "worker" }],
-  filename: ["examples-private/test-fixture/src/scene.tsx", { option: true }],
+  filename: ["examplesxture/src/scene.tsx", { option: true }],
   getFile: async ({ filename }, use) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     await use((path) =>
