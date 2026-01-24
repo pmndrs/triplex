@@ -246,7 +246,7 @@ const test = base.extend<
     }
 
     // Cleanup any files created or modified by the test.
-    spawnSync("git checkout examples examples-private", { shell: true });
+    spawnSync("git checkout examples examples", { shell: true });
   },
   vscode: [
     async ({ fg }, use, workerInfo) => {

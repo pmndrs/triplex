@@ -382,7 +382,7 @@ describe("StreamingXMLParser", () => {
       `\` prop to use the color blue.</ai_message><mutations><code_replace path="/Users/douges/projects/triplex`,
     );
     parser.processChunk(
-      `-monorepo/examples-private/test-fixture/src/scene.tsx" fromLineNumber={16} toLineNumber={16}>`,
+      `-monorepo/examples/test-fixture/src/scene.tsx" fromLineNumber={16} toLineNumber={16}>`,
     );
     parser.processChunk(
       `<meshBasicMaterial color={"#0000ff"} visible={true} /></code_replace></mutations></ai_response>`,
@@ -415,7 +415,7 @@ describe("StreamingXMLParser", () => {
                 {
                   "attributes": {
                     "fromLineNumber": 16,
-                    "path": "/Users/douges/projects/triplex-monorepo/examples-private/test-fixture/src/scene.tsx",
+                    "path": "/Users/douges/projects/triplex-monorepo/examples/test-fixture/src/scene.tsx",
                     "toLineNumber": 16,
                   },
                   "children": [],
