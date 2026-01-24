@@ -41,7 +41,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examplesig/src/scene.jsx",
+    filename: "examples/js/src/scene.jsx",
   });
 
   test(
