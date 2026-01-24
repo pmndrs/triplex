@@ -64,7 +64,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examplesscene.jsx",
+    filename: "examples/js/src/scene.jsx",
   });
 
   test(
@@ -87,7 +87,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-deps/src/app.tsx",
+    filename: "examples/missing-deps/src/app.tsx",
   });
 
   test("missing dependencies splash screen", async ({ vsce }) => {
@@ -102,7 +102,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examples-deps-deno/src/app.tsx",
+    filename: "examples/missing-deps-deno/src/app.tsx",
   });
 
   test("missing deno deps shows arg", async ({ vsce }) => {
