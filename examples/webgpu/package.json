@@ -1,0 +1,17 @@
+{
+  "name": "@example/webgpu",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo \"Not implemented\"",
+    "typedef": "echo \"Not implemented\""
+  },
+  "dependencies": {
+    "@react-three/fiber": "10.0.0-alpha.1",
+    "@types/react": "^19.1.6",
+    "@types/three": "^0.182.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.182.0"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "$schema": "https://triplex.dev/config.schema.json",
+  "webgpu": true
+}
