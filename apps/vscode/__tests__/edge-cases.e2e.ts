@@ -44,7 +44,7 @@ test.describe(() => {
     filename: "examples/no-config/src/scene.jsx",
   });
 
-  test.only(
+  test(
     "opening js only no config no tsconfig",
     { tag: "@vsce_smoke" },
     async ({ vsce }) => {
