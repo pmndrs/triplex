@@ -21,7 +21,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examplesxture/src/sab.tsx",
+    filename: "examples/test-fixture/src/sab.tsx",
   });
 
   test(

@@ -39,7 +39,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examplesxture/src/component-roots.tsx",
+    filename: "examples/test-fixture/src/component-roots.tsx",
   });
 
   test("component with three react root from another module", async ({
@@ -69,7 +69,7 @@ test.describe(() => {
 
 test.describe(() => {
   test.use({
-    filename: "examplesxture/src/selection-edge-case.tsx",
+    filename: "examples/test-fixture/src/selection-edge-case.tsx",
   });
 
   test("unknown custom component but resolved host elements", async ({
