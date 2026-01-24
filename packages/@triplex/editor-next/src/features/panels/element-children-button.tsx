@@ -45,7 +45,7 @@ export function ShowElementChildrenButton({
       onClick={() => setExpanded((state) => !state)}
     >
       {shouldShowExternalComponentIcon && (
-        <Link2Icon className="col-start-1 row-start-1 opacity-100 transition-opacity group-focus-within:opacity-0 group-hover:opacity-0" />
+        <Link2Icon className="col-start-1 row-start-1 opacity-60 transition-opacity group-focus-within:opacity-0 group-hover:opacity-0" />
       )}
 
       {isExpanded ? (
