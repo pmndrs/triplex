@@ -1,5 +1,14 @@
 # @triplex/electron
 
+## 0.70.57
+
+### Patch Changes
+
+- 7d42634: Fix experimental features not being available.
+  - @triplex/client@0.70.50
+  - @triplex/editor@0.70.56
+  - @triplex/server@0.72.4
+
 ## 0.70.56
 
 ### Patch Changes

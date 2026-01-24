@@ -1,5 +1,11 @@
 # @triplex/lib
 
+## 0.69.20
+
+### Patch Changes
+
+- 7d42634: Fix experimental features not being available.
+
 ## 0.69.19
 
 ### Patch Changes

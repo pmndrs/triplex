@@ -1,5 +1,14 @@
 # @triplex/editor-next
 
+## 0.72.4
+
+### Patch Changes
+
+- 7d42634: Fix experimental features not being available.
+- Updated dependencies [7d42634]
+  - @triplex/lib@0.69.20
+  - @triplex/ux@0.72.4
+
 ## 0.72.3
 
 ### Patch Changes

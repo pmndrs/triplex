@@ -1,5 +1,12 @@
 # @triplex/cloud
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [7d42634]
+  - @triplex/lib@0.69.20
+
 ## 0.1.4
 
 ### Patch Changes

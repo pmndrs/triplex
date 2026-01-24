@@ -1,5 +1,13 @@
 # @triplex/vscode
 
+## 0.72.4
+
+### Patch Changes
+
+- 7d42634: Fix experimental features not being available.
+  - @triplex/client@0.70.50
+  - @triplex/server@0.72.4
+
 ## 0.72.3
 
 ### Patch Changes
