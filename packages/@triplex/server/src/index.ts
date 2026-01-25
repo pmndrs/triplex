@@ -6,7 +6,7 @@
  */
 import { readFile } from "node:fs/promises";
 import { Application, isHttpError, Router } from "@oakserver/oak";
-import { fg, initFeatureGates } from "@triplex/lib/fg";
+import { initFeatureGates } from "@triplex/lib/fg";
 import { createForkLogger } from "@triplex/lib/log";
 import { basename } from "@triplex/lib/path";
 import { type FGEnvironment } from "@triplex/lib/types";
@@ -37,7 +37,6 @@ import {
   deleteElement,
   duplicate,
   duplicateElement,
-  group,
   groupElements,
   insertCode,
   move,
@@ -167,14 +166,10 @@ export async function createServer({
     const body = await context.request.body({ type: "json" }).value;
 
     const [ids, result] = await sourceFile.edit((source) => {
-      if (fg("selection_ast_path")) {
-        return groupElements(source, {
-          elements: body.elements,
-          tag: "group",
-        });
-      } else {
-        return group(source, { elements: body.elements, group: "group" });
-      }
+      return groupElements(source, {
+        elements: body.elements,
+        tag: "group",
+      });
     });
 
     context.response.body = { ...ids, ...result };
@@ -270,10 +265,9 @@ export async function createServer({
     const sourceFile = project.getSourceFile(path);
 
     const [ids, result] = await sourceFile.edit((source) => {
-      const jsxElement =
-        astPath && fg("selection_ast_path")
-          ? getJsxElementFromAstPathOrThrow(source, astPath)[0]
-          : getJsxElementAtOrThrow(source, line, column);
+      const jsxElement = astPath
+        ? getJsxElementFromAstPathOrThrow(source, astPath)[0]
+        : getJsxElementAtOrThrow(source, line, column);
 
       const action = upsertProp(jsxElement, name, value);
 
@@ -314,7 +308,7 @@ export async function createServer({
       const astPath = getParamOptional(context, "astPath");
 
       const [ids, result] = await sourceFile.edit((source) => {
-        if (astPath && fg("selection_ast_path")) {
+        if (astPath) {
           return duplicateElement(source, astPath);
         } else {
           return duplicate(source, Number(line), Number(column));
@@ -331,7 +325,7 @@ export async function createServer({
     const astPath = getParamOptional(context, "astPath");
 
     const [ids] = await sourceFile.edit((source) => {
-      if (astPath && fg("selection_ast_path")) {
+      if (astPath) {
         deleteElement(getJsxElementFromAstPathOrThrow(source, astPath)[0]);
       } else {
         commentComponent(source, Number(line), Number(column));

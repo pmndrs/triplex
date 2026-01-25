@@ -6,11 +6,9 @@
  */
 import { monitorForExternal } from "@atlaskit/pragmatic-drag-and-drop/external/adapter";
 import { cn } from "@triplex/lib";
-import { fg } from "@triplex/lib/fg";
 import { useScreenView } from "@triplex/ux";
 import { useEffect, useState } from "react";
 import { preloadSubscription } from "../../hooks/ws";
-import { AIChat } from "../ai-chat";
 import { FloatingControls } from "../floating-controls";
 import { Panels } from "../panels";
 import { VSCodeDropZone } from "../vscode-drop-zone";
@@ -51,10 +49,12 @@ export function AppRoot() {
           data-testid="scene"
           id="scene"
           src={`http://localhost:${window.triplex.env.ports.client}/scene`}
-          style={{ pointerEvents: "var(--canvas-pointer-events, auto)" /* can be used to disable pointer events on iframe */ }}
+          style={{
+            pointerEvents:
+              "var(--canvas-pointer-events, auto)" /* can be used to disable pointer events on iframe */,
+          }}
         />
       </div>
-      {fg("ai_chat") && <AIChat />}
       <VSCodeDropZone />
     </div>
   );

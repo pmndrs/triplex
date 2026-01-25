@@ -5,7 +5,6 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 import { useThree } from "@react-three/fiber";
-import { fg } from "@triplex/lib/fg";
 import { useContext, useLayoutEffect, useRef } from "react";
 import { fitCameraToObjects } from "../../util/three";
 import { CameraControlsContext } from "../camera-new/context";
@@ -25,10 +24,7 @@ export function FitCameraToScene({ resetKeys }: { resetKeys?: string[] }) {
   }, [resetKey]);
 
   useLayoutEffect(() => {
-    if (
-      !controls ||
-      (sceneHasBeenPositioned.current && fg("fit_to_camera_fix"))
-    ) {
+    if (!controls || sceneHasBeenPositioned.current) {
       return;
     }
 

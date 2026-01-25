@@ -6,7 +6,6 @@
  */
 
 import { type TriplexMeta } from "@triplex/bridge/client";
-import { fg } from "@triplex/lib/fg";
 import {
   Raycaster,
   Vector2,
@@ -80,7 +79,7 @@ export const findObject3D = (
     const meta = obj.__triplex;
 
     if (
-      (meta.astPath === filter.astPath && fg("selection_ast_path")) ||
+      meta.astPath === filter.astPath ||
       (meta.path === filter.path &&
         meta.column === filter.column &&
         meta.line === filter.line)
@@ -93,7 +92,7 @@ export const findObject3D = (
     for (const parent of meta.parents) {
       // Check the parents in the meta to see if they are a match and if so resolve the object.
       if (
-        ((parent.astPath === filter.astPath && fg("selection_ast_path")) ||
+        (parent.astPath === filter.astPath ||
           (parent.path === filter.path &&
             parent.column === filter.column &&
             parent.line === filter.line)) &&

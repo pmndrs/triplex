@@ -11,7 +11,6 @@ import {
   type Instance,
 } from "@react-three/fiber";
 import { applyStepModifiers, useEvent, useStepModifiers } from "@triplex/lib";
-import { fg } from "@triplex/lib/fg";
 import {
   Fragment,
   useContext,
@@ -160,19 +159,13 @@ export function TransformControls({
       return;
     }
 
-    if (fg("transform_controls_read_from_props")) {
-      applyProps(placeholder as Instance["object"], {
-        position:
-          object.meta.props.current.position || defaultTransforms.position,
-        rotation:
-          object.meta.props.current.rotation || defaultTransforms.rotation,
-        scale: object.meta.props.current.scale || defaultTransforms.scale,
-      });
-    } else {
-      placeholder.position.copy(object.object.position);
-      placeholder.rotation.copy(object.object.rotation);
-      placeholder.scale.copy(object.object.scale);
-    }
+    applyProps(placeholder as Instance["object"], {
+      position:
+        object.meta.props.current.position || defaultTransforms.position,
+      rotation:
+        object.meta.props.current.rotation || defaultTransforms.rotation,
+      scale: object.meta.props.current.scale || defaultTransforms.scale,
+    });
   });
 
   return (
