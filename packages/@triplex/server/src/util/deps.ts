@@ -52,6 +52,8 @@ const fiberVersionRequirements: Record<number, Record<string, VersionRange>> = {
 
 // Minimum supported fiber version
 const minFiberVersion = "8.0.0";
+// Minimum fiber version required for WebGPU support
+const minFiberVersionWebGPU = "10.0.0";
 
 export interface InvalidVersion {
   installedVersion: string;
@@ -173,25 +175,40 @@ function checkVersionRequirement(
   return null;
 }
 
-function checkFiberVersion(cwd: string): InvalidVersion | null {
+function checkFiberVersion({
+  cwd,
+  webgpu,
+}: {
+  cwd: string;
+  webgpu?: boolean;
+}): InvalidVersion | null {
   const installedVersion = getInstalledVersion("@react-three/fiber", cwd);
   if (!installedVersion) {
     return null;
   }
 
+  // WebGPU requires fiber v10+
+  const requiredMinVersion = webgpu ? minFiberVersionWebGPU : minFiberVersion;
+
   // Check if fiber version is at least the minimum supported
-  if (compareVersions(installedVersion, minFiberVersion) < 0) {
+  if (compareVersions(installedVersion, requiredMinVersion) < 0) {
     return {
       installedVersion,
       name: "@react-three/fiber",
-      requiredVersion: `>=${minFiberVersion}`,
+      requiredVersion: `>=${requiredMinVersion}`,
     };
   }
 
   return null;
 }
 
-export function checkMissingDependencies(cwd: string) {
+export function checkMissingDependencies({
+  cwd,
+  webgpu,
+}: {
+  cwd: string;
+  webgpu?: boolean;
+}) {
   const missingCore: string[] = [];
   const missingThreeFiberDependencies: string[] = [];
   const missingOptionalThreeFiberDependencies: string[] = [];
@@ -201,8 +218,8 @@ export function checkMissingDependencies(cwd: string) {
   const fiberVersion = getInstalledVersion("@react-three/fiber", cwd);
   const requirements = getVersionRequirements(fiberVersion);
 
-  // Check fiber version itself
-  const fiberInvalid = checkFiberVersion(cwd);
+  // Check fiber version itself (WebGPU requires v10+)
+  const fiberInvalid = checkFiberVersion({ cwd, webgpu });
   if (fiberInvalid) {
     invalidVersions.push(fiberInvalid);
   }

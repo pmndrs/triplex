@@ -765,7 +765,7 @@ export async function createServer({
       const pkgManager: null | DetectResult = await detect({
         cwd: config.cwd,
       });
-      const missingDependencies = checkMissingDependencies(config.cwd);
+      const missingDependencies = checkMissingDependencies(config);
       const tool = pkgManager ? pkgManager.name : "npm";
 
       return {
