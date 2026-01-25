@@ -45,13 +45,16 @@ export function AppRoot() {
         <iframe
           allow="cross-origin-isolated"
           className={cn([
-            "h-full w-full",
+            "h-full w-full bg-canvas",
             shouldBlockPointerEvents && "pointer-events-none",
           ])}
           data-testid="scene"
           id="scene"
           src={`http://localhost:${window.triplex.env.ports.client}/scene`}
-          style={{ pointerEvents: "var(--canvas-pointer-events, auto)" /* can be used to disable pointer events on iframe */ }}
+          style={{
+            pointerEvents:
+              "var(--canvas-pointer-events, auto)" /* can be used to disable pointer events on iframe */,
+          }}
         />
       </div>
       {fg("ai_chat") && <AIChat />}
