@@ -35,6 +35,10 @@ module.exports = {
       selected: "var(--vscode-toolbar-activeBackground)",
       warning: "var(--vscode-editorWarning-foreground)",
     },
+    backgroundImage: {
+      canvas:
+        "radial-gradient(ellipse at center, #535353 0%, #2d2d2d 100%)",
+    },
     borderColor: {
       button: "var(--vscode-button-border, transparent)",
       danger: "var(--vscode-editorError-foreground, transparent)",
