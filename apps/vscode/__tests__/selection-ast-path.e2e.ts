@@ -5,9 +5,7 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 import { expect } from "@playwright/test";
-import { overrideFg, test } from "./utils/runner";
-
-overrideFg("selection_ast_path", true);
+import { test } from "./utils/runner";
 
 test("focus custom component displays props", async ({ vsce }) => {
   await vsce.codelens("Scene").click();

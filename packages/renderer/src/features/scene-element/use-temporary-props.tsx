@@ -6,7 +6,6 @@
  */
 
 import { compose, on, type RendererElementProps } from "@triplex/bridge/client";
-import { fg } from "@triplex/lib/fg";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function useForceRender() {
@@ -40,7 +39,7 @@ export function useTemporaryProps(
         }
       }),
       on("request-set-element-prop", (data) => {
-        if (data.astPath === meta.astPath && fg("selection_ast_path")) {
+        if (data.astPath === meta.astPath) {
           intermediateProps.current[data.propName] = data.propValue;
           forceRender();
         } else if (
@@ -54,7 +53,7 @@ export function useTemporaryProps(
         }
       }),
       on("request-reset-prop", (data) => {
-        if (data.astPath === meta.astPath && fg("selection_ast_path")) {
+        if (data.astPath === meta.astPath) {
           delete intermediateProps.current[data.propName];
           forceRender();
         } else if (

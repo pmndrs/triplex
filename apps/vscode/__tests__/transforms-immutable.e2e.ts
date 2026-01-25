@@ -5,9 +5,7 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 import { expect } from "@playwright/test";
-import { overrideFg, test } from "./utils/runner";
-
-overrideFg("immutable_transform_controls", true);
+import { test } from "./utils/runner";
 
 test.describe(() => {
   test.use({

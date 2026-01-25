@@ -11,7 +11,6 @@ import {
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { compose, on, send } from "@triplex/bridge/host";
 import { cn } from "@triplex/lib";
-import { fg } from "@triplex/lib/fg";
 import { type JsxElementPositions } from "@triplex/server";
 import { bind } from "bind-event-listener";
 import {
@@ -90,12 +89,8 @@ export function SceneElement(
   const isSelected =
     !isDragging &&
     !!selected &&
-    (fg("selection_ast_path")
-      ? selected.astPath === props.astPath && props.parentPath === selected.path
-      : "column" in selected &&
-        selected.column === props.column &&
-        selected.line === props.line &&
-        selected.path === props.parentPath);
+    selected.astPath === props.astPath &&
+    props.parentPath === selected.path;
   const filter = useFilter((state) => state.filter);
   const matches = matchesFilter(filter, props);
   const isExpanded = isUserExpanded || !!filter;

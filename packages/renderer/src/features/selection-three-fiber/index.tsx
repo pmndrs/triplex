@@ -7,13 +7,12 @@
 import { useThree } from "@react-three/fiber";
 import { compose, on, send } from "@triplex/bridge/client";
 import { useEvent } from "@triplex/lib";
-import { fg } from "@triplex/lib/fg";
 import { useRevivableState } from "@triplex/lib/use-revivables";
 import { useContext, useEffect, type ReactNode } from "react";
 import { Camera } from "three";
 import { HOVER_LAYER_INDEX, SELECTION_LAYER_INDEX } from "../../util/layers";
 import { resolveElementMeta } from "../../util/meta";
-import { encodeProps, fitCameraToObjects, strip } from "../../util/three";
+import { encodeProps, fitCameraToObjects } from "../../util/three";
 import { SwitchToComponentContext } from "../app/context";
 import {
   ActiveCameraContext,
@@ -34,7 +33,6 @@ import {
 import { SelectionIndicator } from "./selection-indicator";
 import { SelectionIndicatorLines } from "./selection-indicator-lines";
 import { useActionsStore } from "./store";
-import { TransformControls } from "./transform-controls";
 import {
   TransformControls as TransformControlsImmutable,
   type TransformEvent,
@@ -313,54 +311,6 @@ export function ThreeFiberSelection({
     }
   });
 
-  const onCompleteTransformHandler = useEvent(() => {
-    if (!resolvedObject) {
-      return;
-    }
-
-    if (transform === "translate") {
-      const position = resolvedObject.object.position.toArray();
-
-      send("element-set-prop", {
-        astPath: resolvedObject.meta.astPath,
-        column: resolvedObject.meta.column,
-        line: resolvedObject.meta.line,
-        path: resolvedObject.meta.path,
-        propName: "position",
-        propValue: position.map(strip),
-      });
-
-      send("track", { actionId: "element_transform_translate" });
-    } else if (transform === "rotate") {
-      const rotation = resolvedObject.object.rotation.toArray();
-      rotation.pop();
-
-      send("element-set-prop", {
-        astPath: resolvedObject.meta.astPath,
-        column: resolvedObject.meta.column,
-        line: resolvedObject.meta.line,
-        path: resolvedObject.meta.path,
-        propName: "rotation",
-        propValue: rotation,
-      });
-
-      send("track", { actionId: "element_transform_rotate" });
-    } else if (transform === "scale") {
-      const scale = resolvedObject.object.scale.toArray();
-
-      send("element-set-prop", {
-        astPath: resolvedObject.meta.astPath,
-        column: resolvedObject.meta.column,
-        line: resolvedObject.meta.line,
-        path: resolvedObject.meta.path,
-        propName: "scale",
-        propValue: scale.map(strip),
-      });
-
-      send("track", { actionId: "element_transform_scale" });
-    }
-  });
-
   return (
     <SceneObjectContext.Provider value={true}>
       <SceneObjectEventsContext.Provider
@@ -372,8 +322,7 @@ export function ThreeFiberSelection({
       {!!resolvedObject &&
         transform !== "none" &&
         window.triplex.env.mode === "default" &&
-        Object.values(transforms).some(Boolean) &&
-        fg("immutable_transform_controls") && (
+        Object.values(transforms).some(Boolean) && (
           <TransformControlsImmutable
             enabled={
               /^[a-z]/.test(resolvedObject.meta.name)
@@ -384,23 +333,6 @@ export function ThreeFiberSelection({
             object={resolvedObject}
             onChange={onChangeTransformHandler}
             onConfirm={onConfirmTransformHandler}
-            space={space}
-          />
-        )}
-
-      {!!resolvedObject &&
-        transform !== "none" &&
-        window.triplex.env.mode === "default" &&
-        !fg("immutable_transform_controls") && (
-          <TransformControls
-            enabled={
-              /^[a-z]/.test(resolvedObject.meta.name)
-                ? true
-                : transforms[transform]
-            }
-            mode={transform}
-            object={resolvedObject.object}
-            onCompleteTransform={onCompleteTransformHandler}
             space={space}
           />
         )}
