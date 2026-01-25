@@ -42,16 +42,6 @@
         },
         "experimental": {
           "description": "Unstable experimental features that are still in development. Use with caution.",
-          "properties": {
-            "debug_api": {
-              "description": "Enables the debug panel.\n\nSee: https://triplex.dev/docs/building-your-scene/console-logs/debug-panel",
-              "type": "boolean"
-            },
-            "xr_editing": {
-              "description": "Enables Triplex WebXR support for 3D components.\n\nSee: https://triplex.dev/docs/building-your-scene/webxr",
-              "type": "boolean"
-            }
-          },
           "type": "object"
         },
         "files": {
