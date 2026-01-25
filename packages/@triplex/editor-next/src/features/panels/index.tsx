@@ -6,7 +6,6 @@
  */
 import { LayersIcon, Pencil2Icon } from "@radix-ui/react-icons";
 import { cn } from "@triplex/lib";
-import { fg } from "@triplex/lib/fg";
 import { useScreenView } from "@triplex/ux";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { IconButton } from "../../components/button";
@@ -149,7 +148,7 @@ export function Panels() {
             </div>
             <div className="h-1.5" />
           </ScrollContainer>
-          {fg("debug_api") && <DebugPanel />}
+          <DebugPanel />
         </Suspense>
       </div>
     </ResizableSurface>

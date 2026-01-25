@@ -3,18 +3,6 @@ app: Triplex for VS Code
 description: Log data from anywhere in your components to the debug panel.
 ---
 
-## Enabling the Feature
-
-The debug panel is an experimental feature. To enable it you need to turn on the feature gate inside your [Triplex config](/docs/api-reference/config-options):
-
-```json {2-4} filename=".triplex/config.json"
-{
-  "experimental": {
-    "debug_api": true
-  }
-}
-```
-
 ## Installation
 
 To get types for the debug panel you need to install a package then update your `tsconfig.json` / `jsconfig.json` to inject global Triplex types.

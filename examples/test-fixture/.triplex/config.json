@@ -1,7 +1,6 @@
 {
   "$schema": "https://triplex.dev/config.schema.json",
   "components": ["../src/geometry/**/*.tsx"],
-  "experimental": { "debug_api": true, "xr_editing": true },
   "files": ["../src/**/*.tsx"],
   "provider": "./provider.tsx"
 }

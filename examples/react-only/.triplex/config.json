@@ -1,4 +1,3 @@
 {
-  "$schema": "https://triplex.dev/config.schema.json",
-  "experimental": { "xr_editing": true }
+  "$schema": "https://triplex.dev/config.schema.json"
 }

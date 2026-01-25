@@ -5,7 +5,6 @@
  * see this files license find the nearest LICENSE file up the source tree.
  */
 
-import { fg } from "@triplex/lib/fg";
 import { useDialogs } from "../../stores/dialogs";
 import { Feedback } from "../feedback";
 import { OpenInWebXR } from "../webxr";
@@ -17,7 +16,7 @@ export function Dialogs() {
     return <Feedback />;
   }
 
-  if (shownDialog === "open_in_xr" && fg("xr_editing")) {
+  if (shownDialog === "open_in_xr") {
     return <OpenInWebXR />;
   }
 

@@ -19,7 +19,6 @@ import {
   type MenuControl,
 } from "@triplex/bridge/host";
 import { cn } from "@triplex/lib";
-import { fg } from "@triplex/lib/fg";
 import {
   ButtonControl,
   ButtonGroupControl,
@@ -277,7 +276,7 @@ export function FloatingControls() {
           onClick={() => showDialog("help")}
         />
       </Surface>
-      {fg("xr_editing") && (
+      {
         <Surface bg="overlay" className="border p-0.5" direction="horizontal">
           <IconButton
             actionId="scene_frame_reset"
@@ -286,7 +285,7 @@ export function FloatingControls() {
             onClick={() => showDialog("open_in_xr")}
           />
         </Surface>
-      )}
+      }
     </div>
   );
 }

@@ -6,7 +6,7 @@
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join, normalize, resolve } from "@triplex/lib/path";
-import { array, boolean, object, optional, parse, string } from "valibot";
+import { array, object, optional, parse, string } from "valibot";
 import {
   type ReconciledTriplexConfig,
   type SecretTriplexConfig,
@@ -26,12 +26,7 @@ const schema = object({
   assetsDir: optional(string()),
   components: optional(array(string())),
   define: optional(object({})),
-  experimental: optional(
-    object({
-      debug_api: optional(boolean()),
-      xr_editing: optional(boolean()),
-    }),
-  ),
+  experimental: optional(object({})),
   files: optional(array(string())),
   provider: optional(string()),
   publicDir: optional(string()),

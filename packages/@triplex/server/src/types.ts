@@ -162,21 +162,8 @@ export interface TriplexConfig {
    * Unstable experimental features that are still in development. Use with
    * caution.
    */
-  experimental?: {
-    /**
-     * Enables the debug panel.
-     *
-     * See:
-     * https://triplex.dev/docs/building-your-scene/console-logs/debug-panel
-     */
-    debug_api?: boolean;
-    /**
-     * Enables Triplex WebXR support for 3D components.
-     *
-     * See: https://triplex.dev/docs/building-your-scene/webxr
-     */
-    xr_editing?: boolean;
-  };
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  experimental?: {};
   /**
    * An array of relative path globs to select what files can be opened by
    * Triplex. You can define multiple roots. Found files will be available to
