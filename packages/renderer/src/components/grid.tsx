@@ -29,6 +29,11 @@ export function TriplexGrid() {
 
   const shouldRenderGrid = state !== "play" && showGrid;
 
+  if (window.triplex.config.webgpu) {
+    // TODO: Add support for webgpu.
+    return null;
+  }
+
   return (
     <Grid
       cellColor="#6f6f6f"

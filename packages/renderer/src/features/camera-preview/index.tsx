@@ -29,6 +29,11 @@ export function CameraPreview({ camera }: { camera: Camera }) {
     state.gl.setRenderTarget(null);
   });
 
+  if (window.triplex.config.webgpu) {
+    // TODO: Add support for webgpu.
+    return null;
+  }
+
   return (
     <>
       {import.meta.env.VITE_TRIPLEX_ENV === "test" && (

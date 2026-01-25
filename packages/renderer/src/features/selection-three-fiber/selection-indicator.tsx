@@ -60,6 +60,11 @@ export function SelectionIndicator() {
     state.scene.overrideMaterial = prevOverrideMaterial;
   });
 
+  if (window.triplex.config.webgpu) {
+    // TODO: Add support for webgpu.
+    return null;
+  }
+
   return (
     <mesh frustumCulled={false} layers={editorLayer} raycast={() => null}>
       <planeGeometry />

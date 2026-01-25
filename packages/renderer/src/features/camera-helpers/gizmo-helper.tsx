@@ -63,6 +63,11 @@ export const GizmoHelper = ({
       ? size.height / 2 - marginY
       : -size.height / 2 + marginY;
 
+  if (window.triplex.config.webgpu) {
+    // TODO: Add support for webgpu.
+    return null;
+  }
+
   return (
     <Hud renderPriority={renderPriority}>
       <OrthographicCamera makeDefault position={[0, 0, 200]} ref={virtualCam} />
