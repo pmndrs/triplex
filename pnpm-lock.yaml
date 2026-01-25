@@ -179,7 +179,7 @@ importers:
         specifier: 0.69.20
         version: link:../../packages/lib
       '@triplex/ux':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../../packages/ux
       '@types/cors':
         specifier: ^2.8.17
@@ -261,13 +261,13 @@ importers:
   apps/electron:
     dependencies:
       '@triplex/client':
-        specifier: 0.70.50
+        specifier: 0.70.51
         version: link:../../packages/@triplex/client
       '@triplex/editor':
-        specifier: 0.70.56
+        specifier: 0.70.57
         version: link:../../packages/@triplex/editor
       '@triplex/server':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../../packages/@triplex/server
       create-triplex-project:
         specifier: 0.70.13
@@ -334,17 +334,17 @@ importers:
   apps/vscode:
     dependencies:
       '@triplex/client':
-        specifier: 0.70.50
+        specifier: 0.70.51
         version: link:../../packages/@triplex/client
       '@triplex/server':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../../packages/@triplex/server
     devDependencies:
       '@sentry/node':
         specifier: ^8.30.0
         version: 8.30.0
       '@triplex/editor-next':
-        specifier: ^0.72.4
+        specifier: ^0.72.5
         version: link:../../packages/@triplex/editor-next
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -906,7 +906,7 @@ importers:
         specifier: 0.70.12
         version: link:../../bridge
       '@triplex/renderer':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../../renderer
       '@vitejs/plugin-react':
         specifier: ^4.4.1
@@ -937,7 +937,7 @@ importers:
         specifier: 0.69.20
         version: link:../../lib
       '@triplex/server':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../server
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1021,7 +1021,7 @@ importers:
         specifier: 0.69.20
         version: link:../../lib
       '@triplex/ux':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../../ux
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1061,7 +1061,7 @@ importers:
         specifier: ^14.0.0
         version: 14.0.0(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@triplex/server':
-        specifier: ^0.72.4
+        specifier: ^0.72.5
         version: link:../server
       '@types/react':
         specifier: ^19.0.8
@@ -1124,7 +1124,7 @@ importers:
         specifier: 0.69.20
         version: link:../../lib
       '@triplex/ux':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../../ux
       '@triplex/websocks-client':
         specifier: 0.0.9
@@ -1161,7 +1161,7 @@ importers:
         version: 4.5.7(@types/react@19.1.6)(react@19.1.0)
     devDependencies:
       '@triplex/server':
-        specifier: 0.72.4
+        specifier: 0.72.5
         version: link:../server
       '@types/raf-schd':
         specifier: ^4.0.3
@@ -11581,7 +11581,7 @@ snapshots:
       '@typescript-eslint/eslint-plugin': 8.25.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint@8.51.0)(typescript@5.8.3)
       '@typescript-eslint/parser': 8.25.0(eslint@8.51.0)(typescript@5.8.3)
       eslint: 8.51.0
-      eslint-import-resolver-typescript: 3.8.3(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint@8.51.0))(eslint@8.51.0)
+      eslint-import-resolver-typescript: 3.8.3(eslint-plugin-import@2.31.0)(eslint@8.51.0)
       eslint-plugin-import: 2.31.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint-import-resolver-typescript@3.8.3)(eslint@8.51.0)
       eslint-plugin-no-only-tests: 3.3.0
       eslint-plugin-react: 7.37.4(eslint@8.51.0)
@@ -15547,7 +15547,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint@8.51.0))(eslint@8.51.0):
+  eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0)(eslint@8.51.0):
     dependencies:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.1
@@ -15562,14 +15562,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint@8.51.0))(eslint@8.51.0))(eslint@8.51.0):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3)(eslint@8.51.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.25.0(eslint@8.51.0)(typescript@5.8.3)
       eslint: 8.51.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.8.3(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint@8.51.0))(eslint@8.51.0)
+      eslint-import-resolver-typescript: 3.8.3(eslint-plugin-import@2.31.0)(eslint@8.51.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -15588,7 +15588,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.51.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3(eslint-plugin-import@2.31.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint@8.51.0))(eslint@8.51.0))(eslint@8.51.0)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.25.0(eslint@8.51.0)(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.8.3)(eslint@8.51.0)
       hasown: 2.0.2
       is-core-module: 2.15.1
       is-glob: 4.0.3
