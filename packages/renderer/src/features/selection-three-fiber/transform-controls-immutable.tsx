@@ -175,6 +175,11 @@ export function TransformControls({
     }
   });
 
+  if (window.triplex.config.webgpu) {
+    // TODO: Add support for webgpu.
+    return null;
+  }
+
   return (
     <>
       {import.meta.env.VITE_TRIPLEX_ENV === "test" && enabled && (
