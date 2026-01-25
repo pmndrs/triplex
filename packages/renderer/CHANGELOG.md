@@ -1,5 +1,11 @@
 # @triplex/renderer
 
+## 0.72.5
+
+### Patch Changes
+
+- b2edcb4: Cleanup stale feature gates.
+
 ## 0.72.4
 
 ### Patch Changes

@@ -1,5 +1,7 @@
 # @triplex/ux
 
+## 0.72.5
+
 ## 0.72.4
 
 ### Patch Changes

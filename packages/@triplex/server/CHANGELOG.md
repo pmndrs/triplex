@@ -1,5 +1,13 @@
 # @triplex/server
 
+## 0.72.5
+
+### Patch Changes
+
+- b070ab9: Triplex WebXR is now available for everyone, see: https://triplex.dev/docs/building-your-scene/webxr.
+- b2edcb4: Cleanup stale feature gates.
+- b070ab9: The debug panel is now available for everyone, see: https://triplex.dev/docs/building-your-scene/console-logs/debug-panel.
+
 ## 0.72.4
 
 ## 0.72.3

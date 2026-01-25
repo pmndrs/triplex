@@ -1,5 +1,17 @@
 # @triplex/vscode
 
+## 0.72.5
+
+### Patch Changes
+
+- b2edcb4: Cleanup stale feature gates.
+- 472ba1e: The scene now has a persistent background across light and dark themes.
+- Updated dependencies [b070ab9]
+- Updated dependencies [b2edcb4]
+- Updated dependencies [b070ab9]
+  - @triplex/server@0.72.5
+  - @triplex/client@0.70.51
+
 ## 0.72.4
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @docs/triplex
 
+## 0.2.28
+
+### Patch Changes
+
+- b070ab9: Triplex WebXR is now available for everyone, see: https://triplex.dev/docs/building-your-scene/webxr.
+- b070ab9: The debug panel is now available for everyone, see: https://triplex.dev/docs/building-your-scene/console-logs/debug-panel.
+  - @triplex/ux@0.72.5
+
 ## 0.2.27
 
 ### Patch Changes
