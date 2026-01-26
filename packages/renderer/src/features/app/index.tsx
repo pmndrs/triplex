@@ -121,11 +121,7 @@ export function App({
           <div style={{ height: "100%", position: "relative", width: "100%" }}>
             <Suspense
               fallback={
-                <LoadingLogo
-                  color="rgb(59 130 246)"
-                  position="hint"
-                  variant="stroke"
-                />
+                <LoadingLogo color="white" position="hint" variant="stroke" />
               }
             >
               <SceneLoader

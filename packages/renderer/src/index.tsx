@@ -74,11 +74,7 @@ export const bootstrapWebXR: BootstrapFunction = (container) => {
     root.render(
       <Suspense
         fallback={
-          <LoadingLogo
-            color="currentColor"
-            position="splash"
-            variant="stroke"
-          />
+          <LoadingLogo color="white" position="splash" variant="stroke" />
         }
       >
         <WebXRApp

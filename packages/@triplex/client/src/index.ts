@@ -187,7 +187,7 @@ export async function createServer({
     try {
       const template = rootHTML({
         loadingIndicator: loadingLogo({
-          color: "rgb(59 130 246)",
+          color: "white",
           position: "hint",
           variant: "stroke",
         }),

@@ -87,11 +87,7 @@ export function Canvas({ children, ...props }: CanvasProps) {
           <Suspense
             fallback={
               <Tunnel.In>
-                <LoadingLogo
-                  color="rgb(59 130 246)"
-                  position="hint"
-                  variant="stroke"
-                />
+                <LoadingLogo color="white" position="hint" variant="stroke" />
               </Tunnel.In>
             }
           >
@@ -115,7 +111,7 @@ export function Canvas({ children, ...props }: CanvasProps) {
                   fallback={
                     <Tunnel.In>
                       <LoadingLogo
-                        color="rgb(59 130 246)"
+                        color="white"
                         position="hint"
                         variant="stroke"
                       />

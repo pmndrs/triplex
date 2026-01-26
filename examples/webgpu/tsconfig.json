@@ -7,7 +7,7 @@
     "jsx": "preserve",
     "lib": ["dom", "dom.iterable", "es2022"],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "paths": {
       "@/*": ["./src/*"]
