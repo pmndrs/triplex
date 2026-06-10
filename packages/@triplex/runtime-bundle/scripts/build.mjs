@@ -17,6 +17,9 @@ mkdirSync(distDir, { recursive: true });
 const outfile = join(distDir, "runtime.mjs");
 
 const result = await build({
+  alias: {
+    "@httptoolkit/httpolyglot": join(pkgRoot, "src/httpolyglot-shim.mjs"),
+  },
   banner: {
     js: [
       'import { createRequire as __triplexCreateRequire } from "node:module";',

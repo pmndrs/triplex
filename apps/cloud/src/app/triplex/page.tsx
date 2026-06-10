@@ -66,48 +66,44 @@ export default function TriplexSpike() {
       container.on("error", (err) => log(`container error: ${err.message}\n`));
 
       setStatus("fetching");
-      log("Fetching runtime + example + stub renderer + workspace pkgs…\n");
+      log("Fetching runtime + example + workspace pkgs (bridge, lib, renderer)…\n");
       const [
         runtimeRes,
         runtimePkgRes,
         exampleRes,
-        rendererSrcRes,
-        rendererManifestRes,
         bridgePkgRes,
         libPkgRes,
+        rendererPkgRes,
       ] = await Promise.all([
         fetch("/triplex/runtime.mjs"),
         fetch("/triplex/package.json"),
         fetch("/api/example/geometry"),
-        fetch("/triplex-renderer/src/index.tsx"),
-        fetch("/triplex-renderer/manifest.json"),
         fetch("/api/pkg/bridge"),
         fetch("/api/pkg/lib"),
+        fetch("/api/pkg/renderer"),
       ]);
       if (
         !runtimeRes.ok ||
         !exampleRes.ok ||
         !runtimePkgRes.ok ||
-        !rendererSrcRes.ok ||
-        !rendererManifestRes.ok ||
         !bridgePkgRes.ok ||
-        !libPkgRes.ok
+        !libPkgRes.ok ||
+        !rendererPkgRes.ok
       ) {
         throw new Error(
-          `fetch failed: runtime=${runtimeRes.status} runtimePkg=${runtimePkgRes.status} example=${exampleRes.status} rendererSrc=${rendererSrcRes.status} rendererManifest=${rendererManifestRes.status} bridge=${bridgePkgRes.status} lib=${libPkgRes.status}`,
+          `fetch failed: runtime=${runtimeRes.status} runtimePkg=${runtimePkgRes.status} example=${exampleRes.status} bridge=${bridgePkgRes.status} lib=${libPkgRes.status} renderer=${rendererPkgRes.status}`,
         );
       }
       const runtimeBytes = new Uint8Array(await runtimeRes.arrayBuffer());
       const runtimePkg = await runtimePkgRes.text();
-      const rendererSrc = await rendererSrcRes.text();
-      const rendererManifest = await rendererManifestRes.text();
       const bridgeJson = (await bridgePkgRes.json()) as { tree: ApiFileSystemTree };
       const libJson = (await libPkgRes.json()) as { tree: ApiFileSystemTree };
+      const rendererJson = (await rendererPkgRes.json()) as { tree: ApiFileSystemTree };
       const exampleJson = (await exampleRes.json()) as {
         tree: ApiFileSystemTree;
       };
       log(
-        `runtime ${(runtimeBytes.byteLength / 1024 / 1024).toFixed(2)} MB; example + bridge + lib fetched\n`,
+        `runtime ${(runtimeBytes.byteLength / 1024 / 1024).toFixed(2)} MB; example + bridge + lib + renderer fetched\n`,
       );
 
       const projectTree = decodeTree(exampleJson.tree);
@@ -119,10 +115,10 @@ export default function TriplexSpike() {
         const original = configNode.file.contents as string;
         const patched = original.replace(
           /"renderer"\s*:\s*"[^"]+"/,
-          '"renderer": "../.triplex-runtime/renderer/src/index.tsx"',
+          '"renderer": "react-three-fiber"',
         );
         configNode.file.contents = patched;
-        log("patched .triplex/config.json renderer path\n");
+        log("patched .triplex/config.json renderer → react-three-fiber\n");
       }
 
       const pkgNode = projectTree["package.json"];
@@ -133,11 +129,26 @@ export default function TriplexSpike() {
           "@babel/core": "^7.27.0",
           "@babel/preset-react": "^7.27.0",
           "@babel/preset-typescript": "^7.27.0",
+          "@emotion/react": "^11.14.0",
+          "@react-three/handle": "^6.6.16",
           "@statsig/js-client": "^3.17.2",
           "@statsig/js-local-overrides": "^3.17.2",
           "@vitejs/plugin-react": "^4.4.1",
+          "bind-event-listener": "^3.0.0",
+          debounce: "^2.2.0",
           esbuild: "^0.24.2",
+          "raf-schd": "^4.0.3",
+          "react-error-boundary": "^3.1.4",
+          "suspend-react": "^0.1.3",
+          tinycolor2: "^1.6.0",
+          "triplex-drei": "npm:@react-three/drei@^10.0.0",
+          "triplex-handle": "npm:@react-three/handle@^6.6.16",
+          "tunnel-rat": "^0.1.2",
+          "use-callback-ref": "^1.3.1",
           vite: "^6.0.7",
+          "vite-plugin-glsl": "^1.4.1",
+          "vite-tsconfig-paths": "^5.1.4",
+          zustand: "^4.3.2",
         };
         pkgNode.file.contents = JSON.stringify(parsed, null, 2);
         log("injected vite + babel + esbuild into project package.json\n");
@@ -147,24 +158,15 @@ export default function TriplexSpike() {
         directory: {
           "runtime.mjs": { file: { contents: runtimeBytes } },
           "package.json": { file: { contents: runtimePkg } },
-          renderer: {
-            directory: {
-              "manifest.json": { file: { contents: rendererManifest } },
-              src: {
-                directory: {
-                  "index.tsx": { file: { contents: rendererSrc } },
-                },
-              },
-            },
-          },
         },
       };
 
       const bridgeTree = decodeTree(bridgeJson.tree);
       const libTree = decodeTree(libJson.tree);
+      const rendererTree = decodeTree(rendererJson.tree);
 
       setStatus("mounting");
-      log("Mounting /project (project + runtime + stub renderer)…\n");
+      log("Mounting /project (project + runtime)…\n");
       await container.mount({
         "package.json": {
           file: {
@@ -178,9 +180,11 @@ export default function TriplexSpike() {
       });
 
       log("Running npm install in /project (cold — slow)…\n");
-      const install = await container.spawn("npm", ["install"], {
-        cwd: "project",
-      });
+      const install = await container.spawn(
+        "npm",
+        ["install", "--legacy-peer-deps", "--no-audit", "--no-fund"],
+        { cwd: "project" },
+      );
       install.output.pipeTo(
         new WritableStream({ write: (chunk) => log(chunk) }),
       );
@@ -196,6 +200,7 @@ export default function TriplexSpike() {
                 directory: {
                   bridge: { directory: bridgeTree },
                   lib: { directory: libTree },
+                  renderer: { directory: rendererTree },
                 },
               },
             },
@@ -243,6 +248,35 @@ export default function TriplexSpike() {
         log(`\ntriplex process exited code=${code}\n`);
         if (code !== 0) setStatus("error");
       });
+
+      // Probe the listening ports from INSIDE the container to confirm the
+      // local listeners are responsive (vs. WebContainer's proxy lying).
+      setTimeout(async () => {
+        for (const [label, port, path] of [
+          ["server", 5871, "/healthcheck"],
+          ["client-vite-client", 5870, "/@vite/client"],
+          ["client-asset", 5870, "/src/scene.tsx"],
+          ["client-scene-html", 5870, "/scene"],
+        ] as const) {
+          const tmpPath = `probe-${port}.txt`;
+          const proc = await container.spawn(
+            "node",
+            [
+              "-e",
+              `fetch("http://0.0.0.0:${port}${path}").then(async r=>{const fs=await import('node:fs/promises'); const t=await r.text(); await fs.writeFile("${tmpPath.replace(/`/g, '\\`')}", "status="+r.status+"\\n"+t)}).catch(e=>require('fs').writeFileSync("${tmpPath.replace(/`/g, '\\`')}", "ERR "+e.message))`,
+            ],
+            { cwd: "." },
+          );
+          await proc.exit;
+          let body = "(file missing)";
+          try {
+            body = await container.fs.readFile(tmpPath, "utf-8");
+          } catch (e) {
+            body = `(read failed: ${(e as Error).message})`;
+          }
+          log(`[probe :${port}${path}]\n${body.slice(0, 2000)}\n---\n`);
+        }
+      }, 5000);
     } catch (err) {
       log(`boot failed: ${(err as Error).message}\n`);
       setStatus("error");
@@ -325,7 +359,26 @@ export default function TriplexSpike() {
       <main style={{ background: "#fff" }}>
         {servers.find((s) => s.port === 5870) ? (
           <iframe
-            src={servers.find((s) => s.port === 5870)!.url}
+            onLoad={(e) => {
+              // The Triplex renderer waits for a request-open-component
+              // postMessage from the host (normally the editor) to know what
+              // scene to load. Fake it here so the spike can demo a scene.
+              const win = (e.currentTarget as HTMLIFrameElement).contentWindow;
+              if (!win) return;
+              const openMessage = {
+                data: {
+                  encodedProps: "",
+                  exportName: "default",
+                  path: "/src/geometry/box.tsx",
+                },
+                eventName: "request-open-component",
+              };
+              const send = () => win.postMessage(openMessage, "*");
+              send();
+              const interval = setInterval(send, 1000);
+              setTimeout(() => clearInterval(interval), 10_000);
+            }}
+            src={`${servers.find((s) => s.port === 5870)!.url}/scene?path=/src/geometry/box.tsx&exportName=default`}
             style={{ border: 0, height: "100%", width: "100%" }}
             title="triplex-client"
           />

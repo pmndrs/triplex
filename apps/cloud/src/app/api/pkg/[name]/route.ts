@@ -67,7 +67,7 @@ async function walk(dir: string): Promise<FileSystemTree> {
 }
 
 /**
- * Build a synthetic package.json that maps every `./dist/*.js` to a subpath
+ * Build a synthetic package.json that maps every dist JS/MJS file to a subpath
  * export so Node ESM can resolve it. Original publishConfig is unreliable
  * (mixes src/dist), so we generate from what's actually on disk.
  */
@@ -77,21 +77,30 @@ function buildPackageJson(
 ): string {
   const original = JSON.parse(pkgJsonRaw);
   const exports: Record<string, string> = {};
-  for (const file of distFiles) {
-    if (!file.endsWith(".js")) continue;
-    const base = file.slice(0, -3);
+  const moduleFiles = distFiles.filter(
+    (f) => f.endsWith(".js") || f.endsWith(".mjs"),
+  );
+  let mainFile: string | undefined;
+  for (const file of moduleFiles) {
+    const dot = file.lastIndexOf(".");
+    const base = file.slice(0, dot);
+    // Skip hash-suffixed chunk files (e.g. index-CpdQtSaw.mjs) — they are
+    // internal and not meant to be a subpath; only entries with a clean
+    // basename map to subpaths.
+    if (/-[A-Za-z0-9]{6,}$/.test(base)) continue;
     const sub = base === "index" ? "." : `./${base}`;
     exports[sub] = `./dist/${file}`;
+    if (sub === ".") mainFile = `./dist/${file}`;
   }
-  const out = {
+  const out: Record<string, unknown> = {
     name: original.name,
     version: original.version,
     type: "module",
-    main: "./dist/index.js",
     exports,
     dependencies: original.dependencies ?? {},
     peerDependencies: original.peerDependencies ?? {},
   };
+  if (mainFile) out.main = mainFile;
   return JSON.stringify(out, null, 2);
 }
 
