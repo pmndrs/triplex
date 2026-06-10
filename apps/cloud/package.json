@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/google": "^1.2.14",
     "@triplex/lib": "0.69.20",
+    "@webcontainer/api": "^1.6.4",
     "ai": "^4.3.12",
     "next": "15.3.8",
     "react": "^19.1.0",

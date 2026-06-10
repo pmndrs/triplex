@@ -126,6 +126,9 @@ importers:
       '@triplex/lib':
         specifier: 0.69.20
         version: link:../../packages/lib
+      '@webcontainer/api':
+        specifier: ^1.6.4
+        version: 1.6.4
       ai:
         specifier: ^4.3.12
         version: 4.3.12(react@19.1.0)(zod@3.25.36)
@@ -1172,6 +1175,28 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.3
         version: 19.1.5(@types/react@19.1.6)
+
+  packages/@triplex/runtime-bundle:
+    dependencies:
+      '@triplex/client':
+        specifier: workspace:*
+        version: link:../client
+      '@triplex/lib':
+        specifier: workspace:*
+        version: link:../../lib
+      '@triplex/server':
+        specifier: workspace:*
+        version: link:../server
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.17
+        version: 22.15.29
+      esbuild:
+        specifier: ^0.24.2
+        version: 0.24.2
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
 
   packages/@triplex/server:
     dependencies:
@@ -2444,6 +2469,7 @@ packages:
 
   '@lumaai/luma-web@0.1.14':
     resolution: {integrity: sha512-pAAaa8RRA1I1Ou5tsxvpfhJWVNGx1YKMunJ9fhqHS+HLA/IOTf2mvm0V3kKrYb/t3bdlg/kvouB32Lr8Psj0pw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       '@types/three': ^0.157.2
       three: ^0.157.0
@@ -4342,6 +4368,9 @@ packages:
     resolution: {integrity: sha512-v54ltgMzUG8lGY0kAgaOlry57xse1RlWzes9FotfGEx+Fr05KeR8rZicQzEMDmi9QnOgVWHuiEq+xA2HWkAz+Q==}
     engines: {node: '>= 16'}
     hasBin: true
+
+  '@webcontainer/api@1.6.4':
+    resolution: {integrity: sha512-r9sHCXg1FcC1AMgppGwAc0vYWaQhqvg282cnsuPbJEzYnWifAdCVvg+8ngJUEHyHcomhJJp+/zuytite4ITHLw==}
 
   '@webgpu/types@0.1.52':
     resolution: {integrity: sha512-eI883Nlag2hGIkhXxAnq8s4APpqXWuPL3Gbn2ghiU12UjLvfCbVqHK4XfXl3eLRTatqcMmeK7jws7IwWsGfbzw==}
@@ -13675,6 +13704,8 @@ snapshots:
       keytar: 7.9.0
     transitivePeerDependencies:
       - supports-color
+
+  '@webcontainer/api@1.6.4': {}
 
   '@webgpu/types@0.1.52': {}
 

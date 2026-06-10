@@ -1,0 +1,24 @@
+{
+  "name": "@triplex/runtime-bundle",
+  "version": "0.0.0",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "exports": {
+    ".": "./dist/runtime.mjs"
+  },
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "typedef": "tsc"
+  },
+  "dependencies": {
+    "@triplex/client": "workspace:*",
+    "@triplex/lib": "workspace:*",
+    "@triplex/server": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "esbuild": "^0.24.2",
+    "typescript": "^5.8.3"
+  }
+}
