@@ -4,7 +4,30 @@
  * This repository utilizes multiple licenses across different directories. To
  * see this files license find the nearest LICENSE file up the source tree.
  */
+import http from "node:http";
 import { createRequire } from "node:module";
+
+// Patch http.createServer so any call without a request listener gets a
+// default "426 Upgrade Required" responder. The websocks-server attaches WS
+// upgrade handling but doesn't handle plain HTTP requests; without this
+// patch, WebContainer's port proxy sends an HTTP probe, gets nothing back,
+// and returns malformed data to the browser ("Failed to parse http
+// message"). The 426 makes the proxy happy and lets the upgrade handshake
+// complete.
+const origCreateServer = http.createServer;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+http.createServer = function patchedCreateServer(this: unknown, ...args: any[]) {
+  const hasListener = args.some((a) => typeof a === "function");
+  if (!hasListener) {
+    args.push((_req: http.IncomingMessage, res: http.ServerResponse) => {
+      res.writeHead(426, { "Content-Type": "text/plain" });
+      res.end("Upgrade required");
+    });
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return origCreateServer.apply(this, args as any);
+} as typeof http.createServer;
+
 import { createServer as createClientServer } from "@triplex/client";
 import {
   createServer,

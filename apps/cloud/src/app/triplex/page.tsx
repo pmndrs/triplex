@@ -9,6 +9,149 @@
 import { type FileSystemTree, WebContainer } from "@webcontainer/api";
 import { useCallback, useRef, useState } from "react";
 
+function EditorFrame({ servers }: { servers: ServerInfo[] }) {
+  const portToUrl: Record<number, string> = {};
+  for (const s of servers) portToUrl[s.port] = s.url;
+
+  const initialState = {
+    exportName: "default",
+    path: "/src/geometry/box.tsx",
+  };
+
+  const triplexEnv = {
+    env: {
+      config: {
+        define: {},
+        experimental: {},
+        files: ["/src/**/*.tsx"],
+        publicDir: "/public",
+      },
+      externalIP: "127.0.0.1",
+      fgEnvironmentOverride: "local",
+      ports: { client: 5870, server: 5871, ws: 5872 },
+    },
+    initialState,
+    isTelemetryEnabled: false,
+    sessionId: "spike-session",
+    userId: "spike-user",
+    version: "0.72.5",
+  };
+
+  // Replace any localhost:5870/5871/5872 occurrence with the corresponding
+  // WebContainer proxy URL. We do this by intercepting fetch + WebSocket and
+  // by mutation-observing iframe[src].
+  const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Triplex Editor</title>
+    <style>html,body,#root{margin:0;height:100%;min-height:100%;background:#0b0b0b;color:#fff;}canvas{outline:none;}</style>
+    <script>
+      // Forward console + errors to parent so we can see them outside the iframe.
+      window.__editorLog = [];
+      const _push = (level, args) => {
+        try {
+          window.__editorLog.push(level + ": " + Array.from(args).map(a => {
+            try { return typeof a === "string" ? a : JSON.stringify(a); }
+            catch { return String(a); }
+          }).join(" "));
+        } catch {}
+      };
+      ["log","info","warn","error","debug"].forEach(level => {
+        const orig = console[level].bind(console);
+        console[level] = (...args) => { _push(level, args); orig(...args); };
+      });
+      window.addEventListener("error", e => _push("error", ["window.error:", e.message, e.filename + ":" + e.lineno]));
+      window.addEventListener("unhandledrejection", e => _push("error", ["unhandledrejection:", e.reason?.message ?? e.reason]));
+
+      window.triplex = ${JSON.stringify(triplexEnv)};
+
+      // The editor was originally built for a VSCode webview which provides
+      // window.acquireVsCodeApi. We're not in VSCode; stub it as a no-op.
+      window.acquireVsCodeApi = function() {
+        return {
+          postMessage: function(data) {
+            window.parent.postMessage({ source: "triplex-editor", payload: data }, "*");
+          },
+          getState: function() { return null; },
+          setState: function() {},
+        };
+      };
+
+      const PORT_URL = ${JSON.stringify(portToUrl)};
+      function rewrite(url) {
+        if (typeof url !== "string") return url;
+        return url.replace(/(https?|wss?):\\/\\/(localhost|127\\.0\\.0\\.1):(5870|5871|5872)/g, (_, _proto, _host, port) => {
+          const target = PORT_URL[port];
+          if (!target) return _;
+          // Rewrite the scheme to https/wss to match the WebContainer proxy.
+          const tProto = target.startsWith("wss") ? "wss" : (target.startsWith("https") ? "https" : (target.startsWith("ws") ? "ws" : "http"));
+          // Mix: the protocol from the original (http/ws) needs to use the matching secure variant.
+          const origIsWs = _proto.startsWith("ws");
+          const useProto = origIsWs ? "wss" : "https";
+          return useProto + "://" + target.replace(/^[a-z]+:\\/\\//, "");
+        });
+      }
+
+      const _fetch = window.fetch.bind(window);
+      window.fetch = (input, init) => {
+        if (typeof input === "string") input = rewrite(input);
+        else if (input instanceof Request) {
+          const newUrl = rewrite(input.url);
+          if (newUrl !== input.url) input = new Request(newUrl, input);
+        }
+        return _fetch(input, init);
+      };
+
+      const _WS = window.WebSocket;
+      function PatchedWS(url, protocols) {
+        const rewritten = rewrite(url);
+        _push("debug", ["WS construct:", url, "->", rewritten]);
+        const ws = new _WS(rewritten, protocols);
+        ws.addEventListener("open", () => _push("debug", ["WS open:", rewritten]));
+        ws.addEventListener("error", (e) => _push("error", ["WS error:", rewritten, e?.message]));
+        ws.addEventListener("close", (e) => _push("debug", ["WS close:", rewritten, e?.code, e?.reason]));
+        return ws;
+      }
+      PatchedWS.prototype = _WS.prototype;
+      PatchedWS.CONNECTING = _WS.CONNECTING;
+      PatchedWS.OPEN = _WS.OPEN;
+      PatchedWS.CLOSING = _WS.CLOSING;
+      PatchedWS.CLOSED = _WS.CLOSED;
+      window.WebSocket = PatchedWS;
+
+      // Rewrite iframe src attributes as they're set.
+      const setAttr = HTMLIFrameElement.prototype.setAttribute;
+      HTMLIFrameElement.prototype.setAttribute = function(name, value) {
+        if (name === "src") value = rewrite(value);
+        return setAttr.call(this, name, value);
+      };
+      const srcDesc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, "src");
+      if (srcDesc && srcDesc.set) {
+        Object.defineProperty(HTMLIFrameElement.prototype, "src", {
+          ...srcDesc,
+          set(v) { return srcDesc.set.call(this, rewrite(v)); },
+        });
+      }
+      console.log("[triplex-editor-wrap] URL rewrites installed", PORT_URL);
+    </script>
+    <link rel="stylesheet" crossorigin href="/triplex-editor/assets/index.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" crossorigin src="/triplex-editor/index.js"></script>
+  </body>
+</html>`;
+
+  return (
+    <iframe
+      srcDoc={html}
+      style={{ border: 0, height: "100%", width: "100%" }}
+      title="triplex-editor"
+    />
+  );
+}
+
 type Status =
   | "idle"
   | "booting"
@@ -249,34 +392,34 @@ export default function TriplexSpike() {
         if (code !== 0) setStatus("error");
       });
 
-      // Probe the listening ports from INSIDE the container to confirm the
-      // local listeners are responsive (vs. WebContainer's proxy lying).
-      setTimeout(async () => {
+      void triplexProc.output;
+
+      // Defer until the user has had a chance to see status=ready, then
+      // probe the listening ports from INSIDE the container.
+      void (async () => {
+        await new Promise((r) => setTimeout(r, 5000));
         for (const [label, port, path] of [
           ["server", 5871, "/healthcheck"],
-          ["client-vite-client", 5870, "/@vite/client"],
-          ["client-asset", 5870, "/src/scene.tsx"],
-          ["client-scene-html", 5870, "/scene"],
+          ["ws-http", 5872, "/"],
         ] as const) {
           const tmpPath = `probe-${port}.txt`;
-          const proc = await container.spawn(
-            "node",
-            [
-              "-e",
-              `fetch("http://0.0.0.0:${port}${path}").then(async r=>{const fs=await import('node:fs/promises'); const t=await r.text(); await fs.writeFile("${tmpPath.replace(/`/g, '\\`')}", "status="+r.status+"\\n"+t)}).catch(e=>require('fs').writeFileSync("${tmpPath.replace(/`/g, '\\`')}", "ERR "+e.message))`,
-            ],
-            { cwd: "." },
-          );
-          await proc.exit;
-          let body = "(file missing)";
           try {
-            body = await container.fs.readFile(tmpPath, "utf-8");
+            const proc = await container.spawn(
+              "node",
+              [
+                "-e",
+                `fetch("http://0.0.0.0:${port}${path}").then(async r=>{const fs=await import('node:fs/promises'); const t=await r.text(); await fs.writeFile("${tmpPath}", "status="+r.status+"\\n"+t)}).catch(e=>require('fs').writeFileSync("${tmpPath}", "ERR "+e.message))`,
+              ],
+              { cwd: "." },
+            );
+            await proc.exit;
+            const body = await container.fs.readFile(tmpPath, "utf-8");
+            log(`[probe :${port}${path}]\n${body.slice(0, 600)}\n---\n`);
           } catch (e) {
-            body = `(read failed: ${(e as Error).message})`;
+            log(`[probe :${port}${path}] ERROR: ${(e as Error).message}\n`);
           }
-          log(`[probe :${port}${path}]\n${body.slice(0, 2000)}\n---\n`);
         }
-      }, 5000);
+      })();
     } catch (err) {
       log(`boot failed: ${(err as Error).message}\n`);
       setStatus("error");
@@ -357,34 +500,11 @@ export default function TriplexSpike() {
         </div>
       </aside>
       <main style={{ background: "#fff" }}>
-        {servers.find((s) => s.port === 5870) ? (
-          <iframe
-            onLoad={(e) => {
-              // The Triplex renderer waits for a request-open-component
-              // postMessage from the host (normally the editor) to know what
-              // scene to load. Fake it here so the spike can demo a scene.
-              const win = (e.currentTarget as HTMLIFrameElement).contentWindow;
-              if (!win) return;
-              const openMessage = {
-                data: {
-                  encodedProps: "",
-                  exportName: "default",
-                  path: "/src/geometry/box.tsx",
-                },
-                eventName: "request-open-component",
-              };
-              const send = () => win.postMessage(openMessage, "*");
-              send();
-              const interval = setInterval(send, 1000);
-              setTimeout(() => clearInterval(interval), 10_000);
-            }}
-            src={`${servers.find((s) => s.port === 5870)!.url}/scene?path=/src/geometry/box.tsx&exportName=default`}
-            style={{ border: 0, height: "100%", width: "100%" }}
-            title="triplex-client"
-          />
+        {servers.length >= 3 ? (
+          <EditorFrame servers={servers} />
         ) : (
           <div style={{ color: "#666", padding: 32 }}>
-            Iframe will appear when the client port (5870) is up.
+            Editor will load when all three Triplex ports are up.
           </div>
         )}
       </main>

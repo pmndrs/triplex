@@ -74,8 +74,16 @@ function collectTypes<TRoutes extends Array<Record<string, unknown>>>(
  * export type Events = typeof events;
  * ```
  */
-export function createWSServer() {
-  const server = createServer();
+export function createWSServer(opts: { existingServer?: import("node:http").Server } = {}) {
+  const server =
+    opts.existingServer ??
+    createServer((_req, res) => {
+      // Default handler for non-upgrade requests. Without it, the underlying
+      // http server accepts the connection but never responds, which confuses
+      // proxies that probe the port before opening a WS upgrade.
+      res.writeHead(426, { "Content-Type": "text/plain" });
+      res.end("Upgrade required");
+    });
   const eventHandlers: Record<string, (ws: WebSocket) => void> = {};
   const wss = new WebSocketServer<AliveWebSocket>({ server });
   const routeHandlers: RouteHandler[] = [];
