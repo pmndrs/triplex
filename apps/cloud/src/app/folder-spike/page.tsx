@@ -14,6 +14,12 @@ import {
   saveRootHandle,
 } from "./folder-handle-store";
 import { walkFolder, type WalkResult } from "./folder-walk";
+import {
+  clearSnapshot,
+  hashDeps,
+  loadSnapshot,
+  saveSnapshot,
+} from "./node-modules-cache";
 import { scaffold } from "./scaffold";
 
 // "triplex:empty-provider.jsx" is the sentinel @triplex/client uses to mean
@@ -77,6 +83,17 @@ function buildIframeHtml(
       window.__log.push("unhandled: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
     });
 
+    // Forward Cmd+S / Ctrl+S to the parent so it can flush dirty files to
+    // the user's FileSystemDirectoryHandle.
+    window.addEventListener("keydown", function (e) {
+      if ((e.metaKey || e.ctrlKey) && e.key && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        try {
+          window.parent.postMessage({ type: "save-shortcut" }, "*");
+        } catch (err) {}
+      }
+    }, true);
+
     // Log all bridge-style postMessage events received by the editor iframe.
     // Anything with {eventName} is a bridge event. Skip our internal types.
     window.addEventListener("message", function (e) {
@@ -89,8 +106,22 @@ function buildIframeHtml(
     });
 
     window.triplex = ${JSON.stringify(env)};
+    // Stub VSCode API — but instead of a no-op, forward every postMessage
+    // to the parent (our folder-spike page) so we can translate VSCE bridge
+    // events into mutations against the WC's @triplex/server + write-back
+    // to the user's FileSystemDirectoryHandle.
     window.acquireVsCodeApi = function () {
-      return { postMessage: function () {}, getState: function () { return null; }, setState: function () {} };
+      return {
+        postMessage: function (data) {
+          try {
+            window.parent.postMessage({ type: "vsce", payload: data }, "*");
+          } catch (e) {
+            window.__log.push("[vsce forward error] " + e.message);
+          }
+        },
+        getState: function () { return null; },
+        setState: function () {},
+      };
     };
 
     let bridgePort = null;
@@ -225,6 +256,272 @@ type Status =
   | "wc-ready"
   | "child-ready";
 
+// Packages whose type defs we want the Worker's ts-morph project to know
+// about. Without these, JSX intrinsics resolve to nothing and the props
+// panel is empty. Order matters only for log readability.
+const TYPE_MIRROR_PACKAGES = [
+  "@types/react",
+  "@react-three/fiber",
+  "three",
+  "@types/three",
+  "csstype",
+];
+
+interface WCFs {
+  readdir(
+    path: string,
+    options: { withFileTypes: true },
+  ): Promise<Array<{ isDirectory(): boolean; isFile(): boolean; name: string }>>;
+  readdir(path: string): Promise<string[]>;
+  readFile(path: string, encoding: "utf-8"): Promise<string>;
+  writeFile(path: string, data: string): Promise<void>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+}
+
+// Dump the top-level layout of project/ and project/node_modules/ so we
+// can see what a cache mount actually produced. Useful when the snapshot
+// format's path semantics aren't documented.
+async function dumpLayout(
+  container: { fs: WCFs },
+  log: (s: string) => void,
+): Promise<void> {
+  for (const dir of ["project", "project/node_modules"]) {
+    try {
+      const entries = await container.fs.readdir(dir);
+      const trimmed = entries.slice(0, 12);
+      log(
+        `[layout] ${dir} (${entries.length}): ${trimmed.join(", ")}${entries.length > trimmed.length ? "…" : ""}`,
+      );
+    } catch (err) {
+      log(`[layout] ${dir}: read failed (${(err as Error).message})`);
+    }
+  }
+}
+
+interface WCLike {
+  fs: WCFs;
+}
+
+// Writes `contents` to `relPath` (project-relative) inside the user's
+// chosen FileSystemDirectoryHandle, creating directories if needed.
+async function writeToDirHandle(
+  root: FileSystemDirectoryHandle,
+  relPath: string,
+  contents: string,
+): Promise<void> {
+  const segments = relPath.split("/").filter(Boolean);
+  if (segments.length === 0) throw new Error("empty path");
+  let dir = root;
+  for (let i = 0; i < segments.length - 1; i++) {
+    dir = await dir.getDirectoryHandle(segments[i], { create: false });
+  }
+  const file = await dir.getFileHandle(segments.at(-1)!, { create: false });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const w = await (file as any).createWritable();
+  await w.write(contents);
+  await w.close();
+}
+
+// Translates one vscode-bridge event into an HTTP call to the WC's
+// @triplex/server. We use `mode: "no-cors"` because the WC proxy URL
+// rejects CORS preflights even though the server sets
+// Access-Control-Allow-Origin:* — the response is opaque but the side
+// effect (file mutation) still lands. Returns the absolute path of the
+// file that was (probably) mutated, or null if not applicable.
+async function applyVSCEMutation(
+  evt: { eventName: string; data: unknown },
+  ctx: { log: (s: string) => void; server5871Url: string },
+): Promise<string | null> {
+  const { log, server5871Url } = ctx;
+  const base = server5871Url.replace(/\/$/, "");
+  const data = evt.data as Record<string, unknown>;
+  switch (evt.eventName) {
+    case "element-set-prop": {
+      const { astPath, column, line, path, propName, propValue } = data as {
+        astPath: string;
+        column: number;
+        line: number;
+        path: string;
+        propName: string;
+        propValue: unknown;
+      };
+      const url =
+        `${base}/scene/object/${line}/${column}/prop?` +
+        `value=${encodeURIComponent(JSON.stringify(propValue))}` +
+        `&path=${encodeURIComponent(path)}` +
+        `&name=${encodeURIComponent(propName)}` +
+        `&astPath=${encodeURIComponent(astPath)}`;
+      try {
+        await fetch(url, { mode: "no-cors" });
+        log(
+          `[edit] set-prop ${propName} ${path.split("/").pop()}:${line} (dirty)`,
+        );
+        return path;
+      } catch (err) {
+        log(`[edit] set-prop error: ${(err as Error).message}`);
+        return null;
+      }
+    }
+    case "element-delete": {
+      const { astPath, column, line, path } = data as {
+        astPath: string;
+        column: number;
+        line: number;
+        path: string;
+      };
+      const url =
+        `${base}/scene/${encodeURIComponent(path)}/object/${line}/${column}/delete?` +
+        `astPath=${encodeURIComponent(astPath)}`;
+      try {
+        await fetch(url, { method: "POST", mode: "no-cors" });
+        log(`[edit] delete ${path.split("/").pop()}:${line} (dirty)`);
+        return path;
+      } catch (err) {
+        log(`[edit] delete error: ${(err as Error).message}`);
+        return null;
+      }
+    }
+    case "code-update": {
+      const u = data as
+        | {
+            code: string;
+            fromLineNumber: number;
+            id: string;
+            path: string;
+            toLineNumber: number;
+            type: "replace";
+          }
+        | {
+            code: string;
+            id: string;
+            lineNumber: number;
+            path: string;
+            type: "add";
+          };
+      const url =
+        u.type === "replace"
+          ? `${base}/scene/${encodeURIComponent(u.path)}/${u.fromLineNumber}/${u.toLineNumber}/replace`
+          : `${base}/scene/${encodeURIComponent(u.path)}/${u.lineNumber}/add`;
+      try {
+        await fetch(url, {
+          body: JSON.stringify({ code: u.code, id: u.id }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+          mode: "no-cors",
+        });
+        log(`[edit] code-update ${u.type} ${u.path.split("/").pop()} (dirty)`);
+        return u.path;
+      } catch (err) {
+        log(`[edit] code-update error: ${(err as Error).message}`);
+        return null;
+      }
+    }
+    default:
+      return null;
+  }
+}
+
+// Cmd+S handler: walks every absolute file path the editor has dirtied
+// since last save, reads each from the WC, and writes through the user's
+// FileSystemDirectoryHandle. The worker also gets the fresh source so its
+// AST stays consistent.
+async function commitDirtyToDisk(
+  dirty: Set<string>,
+  ctx: {
+    container: WCLike;
+    log: (s: string) => void;
+    rootHandle: FileSystemDirectoryHandle | null;
+    worker: Worker;
+  },
+): Promise<{ savedPaths: Set<string>; skipped: number }> {
+  const { container, log, rootHandle, worker } = ctx;
+  if (!rootHandle) {
+    log(`[save] no rootHandle — fixture mode? ${dirty.size} pending change(s)`);
+    return { savedPaths: new Set(), skipped: dirty.size };
+  }
+  const savedPaths = new Set<string>();
+  let skipped = 0;
+  for (const absPath of dirty) {
+    const rel = absPath.replace(/^\/home\/[^/]+\/project\//, "");
+    const wcPath = `project/${rel}`;
+    let contents: string;
+    try {
+      contents = await container.fs.readFile(wcPath, "utf-8");
+    } catch (err) {
+      log(`[save] WC read failed ${wcPath}: ${(err as Error).message}`);
+      skipped += 1;
+      continue;
+    }
+    worker.postMessage({
+      contents,
+      path: `/${rel}`,
+      type: "fetch-file",
+    });
+    try {
+      await writeToDirHandle(rootHandle, rel, contents);
+      log(`[save] ${rel} (${contents.length}B)`);
+      savedPaths.add(absPath);
+    } catch (err) {
+      log(`[save] failed ${rel}: ${(err as Error).message}`);
+      skipped += 1;
+    }
+  }
+  return { savedPaths, skipped };
+}
+
+
+async function mirrorTypesIntoWorker(
+  container: WCLike,
+  worker: Worker,
+  log: (s: string) => void,
+): Promise<void> {
+  const entries: { contents: string; path: string }[] = [];
+
+  async function walk(wcPath: string, virtualPath: string): Promise<void> {
+    let dirents: Awaited<ReturnType<WCFs["readdir"]>>;
+    try {
+      dirents = await container.fs.readdir(wcPath, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const d of dirents) {
+      const childWc = `${wcPath}/${d.name}`;
+      const childVirt = `${virtualPath}/${d.name}`;
+      if (d.isDirectory()) {
+        // Skip nested node_modules — they don't shadow root deps in our
+        // synthetic project and only inflate the payload.
+        if (d.name === "node_modules") continue;
+        await walk(childWc, childVirt);
+      } else if (d.isFile()) {
+        // Only keep .d.ts and package.json. Source .js/.cjs aren't needed
+        // for type resolution and would slow ts-morph to a crawl.
+        if (!d.name.endsWith(".d.ts") && d.name !== "package.json") continue;
+        try {
+          const contents = await container.fs.readFile(childWc, "utf-8");
+          entries.push({ contents, path: childVirt });
+        } catch {
+          // Binary or missing — skip silently.
+        }
+      }
+    }
+  }
+
+  for (const pkg of TYPE_MIRROR_PACKAGES) {
+    const wcRoot = `project/node_modules/${pkg}`;
+    const virtRoot = `/node_modules/${pkg}`;
+    const before = entries.length;
+    await walk(wcRoot, virtRoot);
+    log(`[types] ${pkg}: +${entries.length - before} files`);
+  }
+
+  if (entries.length === 0) {
+    log("[types] nothing mirrored — worker AST will be type-blind");
+    return;
+  }
+  worker.postMessage({ entries, type: "load-types" });
+  log(`[types] sent ${entries.length} declarations to worker`);
+}
+
 function inferExportsQuick(
   text: string,
 ): { exportName: string; name: string }[] {
@@ -276,6 +573,18 @@ export default function FolderSpike() {
   const containerRef = useRef<WebContainer | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const channelRef = useRef<MessageChannel | null>(null);
+  const rootHandleRef = useRef<FileSystemDirectoryHandle | null>(null);
+  const server5871Ref = useRef<string | null>(null);
+  // Set by the cache code so the server-ready handler can re-snapshot
+  // node_modules after Vite has warmed its dep cache. Both refs are read
+  // by the server-ready handler registered before the cache logic runs.
+  const justInstalledRef = useRef(false);
+  const cacheKeyRef = useRef<string | null>(null);
+  // Worker is the source of truth — it tracks "unsaved" via ts-morph's
+  // sourceFile.isSaved() and emits dirtyCount on every mutation/save.
+  const [dirtyCount, setDirtyCount] = useState(0);
+  const mutationIdRef = useRef(0);
+  const saveIdRef = useRef(0);
   const [status, setStatus] = useState<Status>("idle");
   const [folderName, setFolderName] = useState<string | null>(null);
   const [hasStoredHandle, setHasStoredHandle] = useState(false);
@@ -352,6 +661,14 @@ export default function FolderSpike() {
         { type: "module" },
       );
       workerRef.current = w;
+      // If the user already granted readwrite access, hand the directory
+      // handle to the worker so its custom ts-morph FS persists save()s.
+      if (rootHandleRef.current) {
+        w.postMessage({
+          handle: rootHandleRef.current,
+          type: "set-root-handle",
+        });
+      }
       const channel = new MessageChannel();
       channelRef.current = channel;
       channel.port1.onmessage = (e) => w.postMessage(e.data);
@@ -361,10 +678,40 @@ export default function FolderSpike() {
           log("[worker] ready");
           return;
         }
+        if (msg.type === "mutated") {
+          setDirtyCount(msg.dirtyCount);
+          if (!msg.ok) {
+            log(`[edit] worker error: ${msg.error}`);
+            return;
+          }
+          // Mirror the worker's ts-morph buffer into the WC so Vite HMRs.
+          const wcRel = msg.path
+            .replace(/^\/home\/[^/]+\/project\//, "")
+            .replace(/^\/+/, "");
+          const wc = containerRef.current;
+          if (wc && msg.contents !== undefined) {
+            void wc.fs
+              .writeFile(`project/${wcRel}`, msg.contents)
+              .then(() => log(`[edit] WC sync ${wcRel} (${msg.contents!.length}B)`))
+              .catch((err: Error) =>
+                log(`[edit] WC sync failed ${wcRel}: ${err.message}`),
+              );
+          }
+          return;
+        }
+        if (msg.type === "saved") {
+          setDirtyCount(msg.dirtyCount);
+          log(
+            `[save] ${msg.saved.length} saved · ${msg.skipped.length} skipped`,
+          );
+          for (const s of msg.saved) log(`[save] ✓ ${s.path}`);
+          for (const s of msg.skipped) log(`[save] ✗ ${s.path}: ${s.error}`);
+          return;
+        }
         if (msg.type === "error") {
           log(`[worker err] ${msg.path}: ${msg.error}`);
         } else if (msg.type === "message") {
-          // Quiet — too noisy.
+          // Quiet — subscriptions can be very chatty.
         }
         channel.port1.postMessage(msg);
       };
@@ -435,12 +782,87 @@ export default function FolderSpike() {
 
       await container.mount(rootTree);
       setStatus("wc-installing");
-      log("[wc] npm install --legacy-peer-deps (in project)…");
-      const install = await container.spawn(
-        "npm",
-        ["install", "--legacy-peer-deps", "--no-audit", "--no-fund"],
-        { cwd: "project" },
-      );
+
+      // node_modules cache: hash the resolved pkg deps and try to mount a
+      // previously-cached snapshot before reaching for npm install.
+      const pkgEntry = (tree as FileSystemTree)["package.json"];
+      let scaffoldedPkg: {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      } = {};
+      if (
+        pkgEntry &&
+        "file" in pkgEntry &&
+        typeof pkgEntry.file.contents === "string"
+      ) {
+        try {
+          scaffoldedPkg = JSON.parse(pkgEntry.file.contents);
+        } catch {}
+      }
+      const depsHash = await hashDeps(scaffoldedPkg);
+      cacheKeyRef.current = depsHash;
+      log(`[wc] cache check hash=${depsHash.slice(0, 12)}…`);
+      let usedCache = false;
+      try {
+        const cached = await loadSnapshot(depsHash);
+        if (!cached) {
+          log(`[wc] cache miss (no entry or migrated-out)`);
+        } else {
+          log(
+            `[wc] cache hit (${(cached.byteLength / 1024 / 1024).toFixed(1)} MB)`,
+          );
+          // container.export(path, {format:"binary"}) snapshots the
+          // *contents* of the path. mountPoint requires the target dir to
+          // already exist — otherwise the mount silently no-ops. Create
+          // project/node_modules first, then mount the contents there.
+          try {
+            await container.fs.mkdir("project/node_modules", {
+              recursive: true,
+            });
+            await container.mount(cached, {
+              mountPoint: "project/node_modules",
+            });
+            await dumpLayout(container, log);
+          } catch (err) {
+            log(`[wc] binary mount failed: ${(err as Error).message}`);
+            throw err;
+          }
+          let viteOk = false;
+          try {
+            await container.fs.readFile(
+              "project/node_modules/vite/package.json",
+              "utf-8",
+            );
+            viteOk = true;
+          } catch {
+            // ignored
+          }
+          if (viteOk) {
+            log("[wc] cache mount OK — vite found");
+            usedCache = true;
+          } else {
+            log("[wc] cache mounted but vite missing — falling back to install");
+          }
+        }
+      } catch (err) {
+        log(`[wc] cache mount failed: ${(err as Error).message}`);
+      }
+
+      if (usedCache) {
+        log("[wc] skipped npm install");
+      } else {
+        log("[wc] npm install --legacy-peer-deps (in project)…");
+      }
+      // Old install block follows; guarded behind usedCache.
+      const install = usedCache
+        ? null
+        : await container.spawn(
+            "npm",
+            ["install", "--legacy-peer-deps", "--no-audit", "--no-fund"],
+            { cwd: "project" },
+          );
+      if (install) {
+      justInstalledRef.current = true;
       install.output.pipeTo(
         new WritableStream({
           write(chunk) {
@@ -473,6 +895,26 @@ export default function FolderSpike() {
         log(`[wc] install failed (${installExit})`);
         return;
       }
+      // Snapshot the fresh node_modules for next boot. Binary is opaque
+      // but compact and avoids the JSON.stringify hot-loop on large trees.
+      try {
+        log("[wc] snapshotting node_modules (export)…");
+        const bytes = await container.export("project/node_modules", {
+          format: "binary",
+        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const snapshot = bytes as any as Uint8Array;
+        log(
+          `[wc] export ok (${(snapshot.byteLength / 1024 / 1024).toFixed(1)} MB); writing to IDB…`,
+        );
+        await saveSnapshot(depsHash, snapshot);
+        log(
+          `[wc] cached ${(snapshot.byteLength / 1024 / 1024).toFixed(1)} MB (hash ${depsHash.slice(0, 12)}…)`,
+        );
+      } catch (err) {
+        log(`[wc] snapshot failed: ${(err as Error).message}`);
+      }
+      } // close `if (install)`
 
       // Mount workspace @triplex/* packages into project/node_modules.
       // The runtime-bundle expects @triplex/renderer, @triplex/bridge,
@@ -506,6 +948,12 @@ export default function FolderSpike() {
           log(`[wc] mount ${dep} failed: ${(err as Error).message}`);
         }
       }
+
+      // Mirror the WC's installed type declarations into the Web Worker so
+      // ts-morph there can resolve JSX intrinsic types (mesh, group, div…)
+      // and compute real prop types. Without this, getJsxElementProps
+      // returns an empty array for every element.
+      await mirrorTypesIntoWorker(container, w, log);
 
       log("[wc] spawning @triplex/runtime-bundle…");
       const triplexProc = await container.spawn(
@@ -542,9 +990,15 @@ export default function FolderSpike() {
       );
       container.on("server-ready", (port, url) => {
         log(`[wc] server-ready ${port} ${url}`);
-        // Only port 5870 hosts the Vite-served /scene route. 5871 is the
-        // @triplex/server HTTP routes (unused — worker replaces it) and
-        // 5872 is its WS (unused, same reason).
+        // Port 5871 is @triplex/server's HTTP routes — used for mutations
+        // (set-prop, delete, etc.). We capture the proxy URL so the vsce
+        // bridge handler can target it.
+        if (port === 5871) {
+          server5871Ref.current = url;
+          return;
+        }
+        // 5870 is the Vite-served /scene route. 5872 is the WS server
+        // (unused — the worker handles all WS).
         if (port !== 5870) return;
         setSceneUrl(url);
         setStatus("wc-ready");
@@ -553,6 +1007,33 @@ export default function FolderSpike() {
           iframe.contentWindow.postMessage({ type: "scene-url", url }, "*");
         }
         maybeSendPort.current?.();
+
+        // If we just installed (didn't reuse cache), re-snapshot now —
+        // Vite has finished its initial pre-bundling pass, so the new
+        // snapshot includes node_modules/.vite-* / .triplex-* caches and
+        // future cold starts will skip pre-bundling.
+        if (justInstalledRef.current && cacheKeyRef.current) {
+          const key = cacheKeyRef.current;
+          justInstalledRef.current = false;
+          setTimeout(() => {
+            void (async () => {
+              try {
+                log("[wc] re-snapshotting after Vite warm-up…");
+                const bytes = await container.export("project/node_modules", {
+                  format: "binary",
+                });
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const snap = bytes as any as Uint8Array;
+                await saveSnapshot(key, snap);
+                log(
+                  `[wc] re-cached ${(snap.byteLength / 1024 / 1024).toFixed(1)} MB (incl. vite pre-bundle)`,
+                );
+              } catch (err) {
+                log(`[wc] re-snapshot failed: ${(err as Error).message}`);
+              }
+            })();
+          }, 3000);
+        }
       });
     },
     [log],
@@ -560,6 +1041,7 @@ export default function FolderSpike() {
 
   const startWithHandle = useCallback(
     async (handle: FileSystemDirectoryHandle) => {
+      rootHandleRef.current = handle;
       setStatus("picked");
       log(`[folder] picked: ${handle.name}`);
       try {
@@ -688,10 +1170,61 @@ export default function FolderSpike() {
         trySend();
       } else if (d.type === "editor-log" && Array.isArray(d.lines)) {
         setEditorLog((l) => [...l, ...d.lines]);
+      } else if (d.type === "vsce" && d.payload && typeof d.payload === "object") {
+        const evt = d.payload as { eventName?: string; data?: unknown };
+        if (!evt.eventName) return;
+        const worker = workerRef.current;
+        if (!worker) {
+          log(`[edit] dropped ${evt.eventName} — worker not ready`);
+          return;
+        }
+        if (evt.eventName === "element-set-prop") {
+          const p = evt.data as {
+            astPath?: string;
+            column: number;
+            line: number;
+            path: string;
+            propName: string;
+            propValue: unknown;
+          };
+          const id = ++mutationIdRef.current;
+          log(`[edit] set-prop ${p.propName} ${p.path.split("/").pop()}:${p.line}`);
+          worker.postMessage({
+            astPath: p.astPath,
+            column: p.column,
+            line: p.line,
+            mutationId: id,
+            path: p.path,
+            propName: p.propName,
+            propValue: p.propValue,
+            type: "mutate-set-prop",
+          });
+        } else {
+          // Other VSCE event types not yet wired through the worker.
+          log(`[vsce] ignored ${evt.eventName} (not routed to worker yet)`);
+        }
+      } else if (d.type === "save-shortcut") {
+        const worker = workerRef.current;
+        if (!worker) {
+          log("[save] worker not ready");
+          return;
+        }
+        const id = ++saveIdRef.current;
+        worker.postMessage({ saveId: id, type: "save-all" });
+      }
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        window.postMessage({ type: "save-shortcut" }, "*");
       }
     }
     window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("message", onMsg);
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [sceneUrl, log]);
 
   const onPick = useCallback(async () => {
@@ -702,7 +1235,9 @@ export default function FolderSpike() {
       ).showDirectoryPicker({ mode: "readwrite" });
       await saveRootHandle(handle);
       setHasStoredHandle(true);
-      await startWithHandle(handle);
+      rootHandleRef.current = handle;
+      // Worker doesn't exist yet — startWithHandle creates it. The transfer
+      // happens inside startWithWalk once the worker is up.
     } catch (err) {
       log(`[folder] pick cancelled: ${(err as Error).message}`);
     }
@@ -716,9 +1251,10 @@ export default function FolderSpike() {
 
   const onForget = useCallback(async () => {
     await clearRootHandle();
+    await clearSnapshot().catch(() => {});
     setHasStoredHandle(false);
     setFolderName(null);
-    log("[folder] cleared persisted handle");
+    log("[folder] cleared persisted handle + node_modules cache");
   }, [log]);
 
   return (
@@ -752,6 +1288,14 @@ export default function FolderSpike() {
           )}
           {sceneUrl && <> · scene: <span style={{ color: "#7fa" }}>{sceneUrl}</span></>}
           {initialTarget && <> · target: <span style={{ color: "#7fa" }}>{initialTarget.path}#{initialTarget.exportName}</span></>}
+          {dirtyCount > 0 && (
+            <>
+              {" · "}
+              <span style={{ color: "#f7c844" }}>
+                {dirtyCount} unsaved · ⌘S to save
+              </span>
+            </>
+          )}
         </span>
         <span style={{ flex: 1 }} />
         {status === "idle" && (
