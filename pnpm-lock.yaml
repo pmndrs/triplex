@@ -126,6 +126,9 @@ importers:
       '@triplex/lib':
         specifier: 0.69.20
         version: link:../../packages/lib
+      '@triplex/server':
+        specifier: workspace:*
+        version: link:../../packages/@triplex/server
       '@webcontainer/api':
         specifier: ^1.6.4
         version: 1.6.4
@@ -160,6 +163,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.0.3
         version: 19.1.5(@types/react@19.1.6)
+      esbuild:
+        specifier: ^0.24.2
+        version: 0.24.2
       kill-port:
         specifier: ^2.0.1
         version: 2.0.1

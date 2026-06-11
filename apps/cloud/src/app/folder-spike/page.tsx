@@ -16,29 +16,34 @@ import {
 import { walkFolder, type WalkResult } from "./folder-walk";
 import { scaffold } from "./scaffold";
 
-const TRIPLEX_ENV_BASE = {
-  env: {
-    config: {
-      define: {},
-      experimental: {},
-      files: ["/src/**/*.tsx"],
-      provider: "/src/provider.tsx",
-      publicDir: "/public",
-    },
-    externalIP: "127.0.0.1",
-    fgEnvironmentOverride: "local",
-    ports: { client: 5870, server: 5871, ws: 5872 },
-  },
-  isTelemetryEnabled: false,
-  sessionId: "folder-session",
-  userId: "folder-user",
-  version: "0.72.5",
-};
+// "triplex:empty-provider.jsx" is the sentinel @triplex/client uses to mean
+// "no user-supplied provider"; panel-provider.tsx in the editor short-circuits
+// the providers subscription when this is set.
+const NO_PROVIDER = "triplex:empty-provider.jsx";
 
-function buildIframeHtml(initialPath: string, initialExport: string): string {
+function buildIframeHtml(
+  initialPath: string,
+  initialExport: string,
+  providerPath: string,
+): string {
   const env = {
-    ...TRIPLEX_ENV_BASE,
+    env: {
+      config: {
+        define: {},
+        experimental: {},
+        files: ["/src/**/*.tsx"],
+        provider: providerPath,
+        publicDir: "/public",
+      },
+      externalIP: "127.0.0.1",
+      fgEnvironmentOverride: "local",
+      ports: { client: 5870, server: 5871, ws: 5872 },
+    },
     initialState: { exportName: initialExport, path: initialPath },
+    isTelemetryEnabled: false,
+    sessionId: "folder-session",
+    userId: "folder-user",
+    version: "0.72.5",
   };
   return `<!doctype html>
 <html lang="en">
@@ -70,6 +75,17 @@ function buildIframeHtml(initialPath: string, initialExport: string): string {
     });
     window.addEventListener("unhandledrejection", function (e) {
       window.__log.push("unhandled: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
+    });
+
+    // Log all bridge-style postMessage events received by the editor iframe.
+    // Anything with {eventName} is a bridge event. Skip our internal types.
+    window.addEventListener("message", function (e) {
+      const d = e.data;
+      if (!d || typeof d !== "object") return;
+      if (d.type === "bridge-port" || d.type === "scene-url") return;
+      if (typeof d.eventName === "string") {
+        window.__log.push("[bridge in] " + d.eventName + ((typeof d.data === "object" && d.data) ? " " + JSON.stringify(d.data).slice(0, 200) : ""));
+      }
     });
 
     window.triplex = ${JSON.stringify(env)};
@@ -270,6 +286,7 @@ export default function FolderSpike() {
   } | null>(null);
   const [sceneUrl, setSceneUrl] = useState<string | null>(null);
   const [parentLog, setParentLog] = useState<string[]>([]);
+  const [npmSpinner, setNpmSpinner] = useState<string | null>(null);
   const [editorLog, setEditorLog] = useState<string[]>([]);
   const [initialTarget, setInitialTarget] = useState<{
     path: string;
@@ -292,31 +309,9 @@ export default function FolderSpike() {
     })();
   }, []);
 
-  const startWithHandle = useCallback(
-    async (handle: FileSystemDirectoryHandle) => {
-      setFolderName(handle.name);
-      setStatus("picked");
-      log(`[folder] picked: ${handle.name}`);
-
-      // Ask for readwrite. Browser may auto-grant if previously approved.
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const perm: PermissionState = await (handle as any).requestPermission({
-          mode: "readwrite",
-        });
-        log(`[folder] readwrite permission: ${perm}`);
-      } catch (err) {
-        log(`[folder] permission error: ${(err as Error).message}`);
-      }
-
-      log("[folder] walking…");
-      const walk = await walkFolder(handle, (n) =>
-        setParentLog((l) => {
-          const last = l[l.length - 1];
-          const line = `[folder] walked ${n} files`;
-          return last === line ? l : [...l, line];
-        }),
-      );
+  const startWithWalk = useCallback(
+    async (walk: WalkResult, displayName: string) => {
+      setFolderName(displayName);
       setWalkSummary({
         fileCount: walk.files.length,
         skipped: walk.skipped.length,
@@ -335,8 +330,16 @@ export default function FolderSpike() {
       setInitialTarget(target);
       log(`[folder] initial scene: ${target.path}#${target.exportName}`);
 
+      // Detect the user's provider file (Triplex convention is
+      // src/provider.tsx). Fall back to the no-provider sentinel.
+      const providerFile = walk.files.find(
+        (f) => f.path === "src/provider.tsx" || f.path.endsWith("/src/provider.tsx"),
+      );
+      const providerPath = providerFile ? `/${providerFile.path}` : NO_PROVIDER;
+      log(`[folder] provider: ${providerPath}`);
+
       // Prepare the editor iframe HTML now that we know the initial state.
-      setIframeHtml(buildIframeHtml(target.path, target.exportName));
+      setIframeHtml(buildIframeHtml(target.path, target.exportName, providerPath));
 
       // Boot worker.
       const w = new Worker(
@@ -379,45 +382,167 @@ export default function FolderSpike() {
       log("[wc] booting…");
       const container = await WebContainer.boot();
       containerRef.current = container;
-      const tree = scaffold(walk.tree, /* pkgJsonText (already in tree) */ null);
-      await container.mount(tree);
-      setStatus("wc-installing");
-      log("[wc] npm install --legacy-peer-deps…");
-      const install = await container.spawn("npm", [
-        "install",
-        "--legacy-peer-deps",
+      const { tree, triplexDeps } = scaffold(
+        walk.tree,
+        /* pkgJsonText (already in tree) */ null,
+      );
+
+      // Fetch the real @triplex/runtime-bundle (a single ESM file that
+      // boots @triplex/server + @triplex/client). We don't run the babel
+      // plugin ourselves — the runtime-bundle's bundled @triplex/client
+      // wires it up correctly via its full Vite config (scenePlugin,
+      // remoteModulePlugin, syncPlugin, glsl, tsconfigPaths, etc.).
+      const [runtimeRes, runtimePkgRes] = await Promise.all([
+        fetch("/triplex/runtime.mjs"),
+        fetch("/triplex/package.json"),
       ]);
+      if (!runtimeRes.ok || !runtimePkgRes.ok) {
+        log(
+          `[wc] runtime fetch failed: runtime=${runtimeRes.status} pkg=${runtimePkgRes.status}`,
+        );
+        return;
+      }
+      const runtimeBytes = new Uint8Array(await runtimeRes.arrayBuffer());
+      const runtimePkg = await runtimePkgRes.text();
+      log(`[wc] runtime ${(runtimeBytes.byteLength / 1024 / 1024).toFixed(2)} MB`);
+
+      // Nest the user's project under ./project. The runtime lives INSIDE
+      // project/.triplex-runtime so Node's module resolution finds vite (and
+      // friends) in project/node_modules. Top-level package.json keeps WC's
+      // home dir from walking past the workspace root.
+      (tree as FileSystemTree)[".triplex-runtime"] = {
+        directory: {
+          "package.json": { file: { contents: runtimePkg } },
+          "runtime.mjs": { file: { contents: runtimeBytes } },
+        },
+      };
+      const rootTree: FileSystemTree = {
+        "package.json": {
+          file: {
+            contents: JSON.stringify({
+              name: "triplex-folder-spike-root",
+              private: true,
+            }),
+          },
+        },
+        project: { directory: tree },
+      };
+
+      await container.mount(rootTree);
+      setStatus("wc-installing");
+      log("[wc] npm install --legacy-peer-deps (in project)…");
+      const install = await container.spawn(
+        "npm",
+        ["install", "--legacy-peer-deps", "--no-audit", "--no-fund"],
+        { cwd: "project" },
+      );
       install.output.pipeTo(
         new WritableStream({
           write(chunk) {
-            const t = chunk.trim();
+            // Strip ANSI control sequences (npm's cursor-home + clear-line +
+            // spinner produce a torrent of these per second).
+            const stripped = chunk.replace(
+              /\[[\d;]*[a-zA-Z]/g,
+              "",
+            );
+            const t = stripped.trim();
             if (!t) return;
-            // Suppress per-line npm progress noise.
-            if (t.length > 200) return;
-            log(`[npm] ${t.slice(0, 180)}`);
+            // If the only thing left is a single spinner character, update
+            // the rotating placeholder instead of pushing a new log line.
+            if (/^[\\|/\-]$/.test(t)) {
+              setNpmSpinner(t);
+              return;
+            }
+            // Multi-char chunks may still contain spinner crud mixed with
+            // real text; collapse runs of spinner chars.
+            const cleaned = t.replace(/[\\|/\-]{2,}/g, "").trim();
+            if (!cleaned) return;
+            if (cleaned.length > 200) return;
+            log(`[npm] ${cleaned.slice(0, 180)}`);
           },
         }),
       );
       const installExit = await install.exit;
+      setNpmSpinner(null);
       if (installExit !== 0) {
         log(`[wc] install failed (${installExit})`);
         return;
       }
-      log("[wc] starting vite…");
-      const dev = await container.spawn("npm", ["run", "dev"]);
-      dev.output.pipeTo(
+
+      // Mount workspace @triplex/* packages into project/node_modules.
+      // The runtime-bundle expects @triplex/renderer, @triplex/bridge,
+      // @triplex/lib to be resolvable from the project root.
+      for (const dep of triplexDeps) {
+        const pkgName = dep.replace(/^@triplex\//, "");
+        log(`[wc] mounting workspace ${dep}…`);
+        try {
+          const res = await fetch(`/api/pkg/${pkgName}`);
+          if (!res.ok) {
+            log(`[wc] /api/pkg/${pkgName} → ${res.status}`);
+            continue;
+          }
+          const { tree: pkgTree } = (await res.json()) as {
+            tree: Record<string, unknown>;
+          };
+          await container.mount(
+            {
+              node_modules: {
+                directory: {
+                  "@triplex": {
+                    directory: { [pkgName]: { directory: pkgTree } },
+                  },
+                },
+              },
+            },
+            { mountPoint: "project" },
+          );
+          log(`[wc] mounted ${dep}`);
+        } catch (err) {
+          log(`[wc] mount ${dep} failed: ${(err as Error).message}`);
+        }
+      }
+
+      log("[wc] spawning @triplex/runtime-bundle…");
+      const triplexProc = await container.spawn(
+        "node",
+        ["./.triplex-runtime/runtime.mjs"],
+        {
+          cwd: "project",
+          env: {
+            TRIPLEX_CLIENT_PORT: "5870",
+            TRIPLEX_SERVER_PORT: "5871",
+            TRIPLEX_WS_PORT: "5872",
+          },
+        },
+      );
+      triplexProc.output.pipeTo(
         new WritableStream({
           write(chunk) {
-            const t = chunk.trim();
-            if (t) log(`[vite] ${t.slice(0, 220)}`);
+            const stripped = chunk.replace(
+              // eslint-disable-next-line no-control-regex
+              /\x1b\[[\d;]*[a-zA-Z]/g,
+              "",
+            );
+            const t = stripped.trim();
+            if (!t) return;
+            if (/^[\\|/\-]$/.test(t)) return;
+            const cleaned = t.replace(/[\\|/\-]{2,}/g, "").trim();
+            if (!cleaned) return;
+            log(`[runtime] ${cleaned.slice(0, 220)}`);
           },
         }),
       );
+      void triplexProc.exit.then((code) =>
+        log(`[runtime] exit code=${code}`),
+      );
       container.on("server-ready", (port, url) => {
         log(`[wc] server-ready ${port} ${url}`);
+        // Only port 5870 hosts the Vite-served /scene route. 5871 is the
+        // @triplex/server HTTP routes (unused — worker replaces it) and
+        // 5872 is its WS (unused, same reason).
+        if (port !== 5870) return;
         setSceneUrl(url);
         setStatus("wc-ready");
-        // Notify iframe if it's already up.
         const iframe = iframeRef.current;
         if (iframe?.contentWindow) {
           iframe.contentWindow.postMessage({ type: "scene-url", url }, "*");
@@ -427,6 +552,106 @@ export default function FolderSpike() {
     },
     [log],
   );
+
+  const startWithHandle = useCallback(
+    async (handle: FileSystemDirectoryHandle) => {
+      setStatus("picked");
+      log(`[folder] picked: ${handle.name}`);
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const perm: PermissionState = await (handle as any).requestPermission({
+          mode: "readwrite",
+        });
+        log(`[folder] readwrite permission: ${perm}`);
+      } catch (err) {
+        log(`[folder] permission error: ${(err as Error).message}`);
+      }
+      log("[folder] walking…");
+      const walk = await walkFolder(handle, (n) =>
+        setParentLog((l) => {
+          const last = l[l.length - 1];
+          const line = `[folder] walked ${n} files`;
+          return last === line ? l : [...l, line];
+        }),
+      );
+      await startWithWalk(walk, handle.name);
+    },
+    [log, startWithWalk],
+  );
+
+  const startWithFixture = useCallback(
+    async (name: string) => {
+      setStatus("picked");
+      log(`[fixture] loading examples/${name}…`);
+      const res = await fetch(`/api/folder-fixture/${name}`);
+      if (!res.ok) {
+        log(`[fixture] /api/folder-fixture/${name} → ${res.status}`);
+        return;
+      }
+      const payload = (await res.json()) as {
+        files: Array<
+          | { contents: string; path: string }
+          | { contentsBase64: string; path: string }
+        >;
+        name: string;
+        tree: Record<string, unknown>;
+      };
+      // Walk the API tree, decoding base64 binaries into Uint8Array so
+      // WebContainer.mount accepts them. The API hands us
+      // { file: { contents: { base64: "..." } } } for binaries.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function decodeTree(api: any): any {
+        const out: Record<string, unknown> = {};
+        for (const [name, node] of Object.entries(api)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const n = node as any;
+          if ("directory" in n) {
+            out[name] = { directory: decodeTree(n.directory) };
+          } else if (typeof n.file.contents === "string") {
+            out[name] = { file: { contents: n.file.contents } };
+          } else {
+            const bin = Uint8Array.from(atob(n.file.contents.base64), (c) =>
+              c.charCodeAt(0),
+            );
+            out[name] = { file: { contents: bin } };
+          }
+        }
+        return out;
+      }
+
+      const walk: WalkResult = {
+        files: payload.files.map((f) =>
+          "contents" in f
+            ? { contents: f.contents, path: f.path }
+            : {
+                contents: Uint8Array.from(atob(f.contentsBase64), (c) =>
+                  c.charCodeAt(0),
+                ),
+                path: f.path,
+              },
+        ),
+        skipped: [],
+        tree: decodeTree(payload.tree),
+        truncated: false,
+      };
+      await startWithWalk(walk, payload.name);
+    },
+    [log, startWithWalk],
+  );
+
+  // Auto-start when ?fixture=<name> is present in the URL.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fixture = params.get("fixture");
+    if (fixture) {
+      // Defer to next tick so refs/state are mounted.
+      const id = setTimeout(() => {
+        startWithFixture(fixture);
+      }, 0);
+      return () => clearTimeout(id);
+    }
+    return undefined;
+  }, [startWithFixture]);
 
   // Send port to iframe once worker + WC + child are all ready.
   const maybeSendPort = useRef<() => void>();
@@ -578,6 +803,7 @@ export default function FolderSpike() {
             }}
           >
             {parentLog.join("\n")}
+            {npmSpinner ? `\n[npm] ${npmSpinner}` : ""}
           </pre>
           <strong style={{ color: "#7af", padding: "8px 8px 0" }}>editor log</strong>
           <pre
