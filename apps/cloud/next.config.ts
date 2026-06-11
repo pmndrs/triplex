@@ -15,14 +15,14 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Mirror of the webpack `node:*` shim further down — keeps Turbopack
-  // (dev) and Webpack (prod) on the same page when the Web Worker pulls in
-  // @triplex/server → @triplex/lib/path which imports node:path/fs/os.
+  // The Web Worker (`wss-worker.ts`) pulls in @triplex/lib/path which
+  // imports node:path. path-browserify also works in the server runtime,
+  // so a single global alias is fine. node:fs / node:os only get used by
+  // server code paths — leaving them on the real module so API routes
+  // (e.g. /api/pkg-watch's fs.watch) keep their behaviour.
   turbopack: {
     resolveAlias: {
       "node:path": "path-browserify",
-      "node:fs": "./src/lib/empty-node-module.ts",
-      "node:os": "./src/lib/empty-node-module.ts",
     },
   },
   // The Web Worker (`wss-worker.ts`) pulls in @triplex/server + @triplex/lib

@@ -7,7 +7,11 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, resolve, sep as pathSep } from "node:path";
-import { PACKAGES_ROOT, type FileSystemTree } from "./pkg-jit";
+import {
+  buildPackageJson,
+  PACKAGES_ROOT,
+  type FileSystemTree,
+} from "./pkg-jit";
 
 const TEXT_EXTENSIONS = new Set([
   ".css",
@@ -154,6 +158,31 @@ export async function getProdBundle(): Promise<CachedBundle> {
       continue;
     }
     const tree = await walkPrebuilt(root);
+
+    // The on-disk package.json points at `./src/*.ts(x)` for in-repo dev
+    // convenience. The WC only has the prebuilt `dist/` files mounted, so
+    // rewrite the exports map to surface `./dist/*.{js,mjs}` instead.
+    // Reuse the same rebuilder the JIT route uses.
+    const distNode = tree.dist;
+    const distFiles: string[] = [];
+    if (distNode && "directory" in distNode) {
+      for (const [fname, node] of Object.entries(distNode.directory)) {
+        if ("file" in node) distFiles.push(fname);
+      }
+    }
+    const pkgNode = tree["package.json"];
+    if (
+      pkgNode &&
+      "file" in pkgNode &&
+      typeof pkgNode.file.contents === "string" &&
+      distFiles.length > 0
+    ) {
+      pkgNode.file.contents = buildPackageJson(
+        pkgNode.file.contents,
+        distFiles,
+      );
+    }
+
     const mountSegment = pkg.name.replace(/^@triplex\//, "");
     packages[pkg.name] = { mountSegment, name: pkg.name, tree };
   }

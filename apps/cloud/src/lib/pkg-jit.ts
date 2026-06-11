@@ -77,6 +77,54 @@ export function collectFiles(
 }
 
 /**
+ * Build a synthetic package.json that maps every top-level `dist/<file>.{js,mjs}`
+ * to a subpath export so Node ESM can resolve it. Used by both the JIT and
+ * prebuilt code paths because the on-disk package.json points at `./src/*.ts`
+ * by default (developer convenience for in-repo imports). Hash-suffixed
+ * chunk files (`index-CpdQtSaw.mjs`) are kept on disk but excluded from the
+ * exports map — they're internal chunks pulled in by their owning entry.
+ */
+export function buildPackageJson(
+  pkgJsonRaw: string,
+  distFiles: string[],
+): string {
+  const original = JSON.parse(pkgJsonRaw);
+  const exports: Record<string, string> = {};
+  const moduleFiles = distFiles.filter(
+    (f) => f.endsWith(".js") || f.endsWith(".mjs"),
+  );
+  let mainFile: string | undefined;
+  for (const file of moduleFiles) {
+    const dot = file.lastIndexOf(".");
+    const base = file.slice(0, dot);
+    // Skip hash-suffixed chunk files. A real hash always contains an
+    // uppercase letter or digit, which lets us distinguish `-CpdQtSaw`
+    // (hash) from `-revivables` (a regular kebab-case word).
+    const tail = base.slice(base.lastIndexOf("-") + 1);
+    if (
+      tail.length >= 6 &&
+      tail.length <= 12 &&
+      /[A-Z0-9]/.test(tail) &&
+      base.includes("-")
+    )
+      continue;
+    const sub = base === "index" ? "." : `./${base}`;
+    exports[sub] = `./dist/${file}`;
+    if (sub === ".") mainFile = `./dist/${file}`;
+  }
+  const out: Record<string, unknown> = {
+    name: original.name,
+    version: original.version,
+    type: "module",
+    exports,
+    dependencies: original.dependencies ?? {},
+    peerDependencies: original.peerDependencies ?? {},
+  };
+  if (mainFile) out.main = mainFile;
+  return JSON.stringify(out, null, 2);
+}
+
+/**
  * Tree-aware import rewriter. esbuild's TS→JS output keeps extensionless
  * relative specifiers (`./features/app`). Node ESM in the WC needs a real
  * file path, which may be `./features/app.js` OR `./features/app/index.js`.

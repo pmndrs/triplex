@@ -8,6 +8,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { join, resolve, sep as pathSep } from "node:path";
 import { type NextRequest } from "next/server";
 import {
+  buildPackageJson,
   compilePkgSrc,
   PACKAGES_ROOT,
   type FileSystemTree,
@@ -76,53 +77,6 @@ async function walk(dir: string): Promise<FileSystemTree> {
     }
   }
   return tree;
-}
-
-/**
- * Build a synthetic package.json that maps every dist JS/MJS file to a subpath
- * export so Node ESM can resolve it. Original publishConfig is unreliable
- * (mixes src/dist), so we generate from what's actually on disk.
- */
-function buildPackageJson(
-  pkgJsonRaw: string,
-  distFiles: string[],
-): string {
-  const original = JSON.parse(pkgJsonRaw);
-  const exports: Record<string, string> = {};
-  const moduleFiles = distFiles.filter(
-    (f) => f.endsWith(".js") || f.endsWith(".mjs"),
-  );
-  let mainFile: string | undefined;
-  for (const file of moduleFiles) {
-    const dot = file.lastIndexOf(".");
-    const base = file.slice(0, dot);
-    // Skip hash-suffixed chunk files (e.g. index-CpdQtSaw.mjs) — they are
-    // internal and not meant to be a subpath; only entries with a clean
-    // basename map to subpaths. A real hash always contains an uppercase
-    // letter or digit, which lets us distinguish `-CpdQtSaw` (hash) from
-    // `-revivables` (a regular kebab-case word).
-    const tail = base.slice(base.lastIndexOf("-") + 1);
-    if (
-      tail.length >= 6 &&
-      tail.length <= 12 &&
-      /[A-Z0-9]/.test(tail) &&
-      base.includes("-")
-    )
-      continue;
-    const sub = base === "index" ? "." : `./${base}`;
-    exports[sub] = `./dist/${file}`;
-    if (sub === ".") mainFile = `./dist/${file}`;
-  }
-  const out: Record<string, unknown> = {
-    name: original.name,
-    version: original.version,
-    type: "module",
-    exports,
-    dependencies: original.dependencies ?? {},
-    peerDependencies: original.peerDependencies ?? {},
-  };
-  if (mainFile) out.main = mainFile;
-  return JSON.stringify(out, null, 2);
 }
 
 /**
