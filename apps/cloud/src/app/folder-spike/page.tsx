@@ -946,15 +946,13 @@ export default function FolderSpike() {
       }
       } // close `if (install)`
 
-      // Mount workspace @triplex/* packages into project/node_modules. We
-      // include the runtime (`@triplex/{client,server,runtime-bundle}`) so
-      // the spawned cloud-runtime entry resolves them as JIT-served source
-      // and per-package edits flow through pkg-watch instead of needing a
-      // runtime-bundle rebuild.
+      // Mount workspace @triplex/* packages into project/node_modules so
+      // the prebuilt runtime-bundle can resolve them at runtime. JIT
+      // recompiles their src/ via /api/pkg/<name>, and pkg-watch streams
+      // post-mount edits straight into the WC FS for the scene reload.
       for (const dep of triplexDeps) {
-        // dep is the full npm name (e.g. "@triplex/renderer" or
-        // "@triplex/client"). Last segment after `@triplex/` is the dir
-        // name we mount under node_modules/@triplex/.
+        // dep is the full npm name (e.g. "@triplex/renderer"). Strip the
+        // namespace to get the dir we mount under node_modules/@triplex/.
         const shortName = dep.replace(/^@triplex\//, "");
         log(`[wc] mounting workspace ${dep}…`);
         try {
