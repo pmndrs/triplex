@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Mirror of the webpack `node:*` shim further down — keeps Turbopack
+  // (dev) and Webpack (prod) on the same page when the Web Worker pulls in
+  // @triplex/server → @triplex/lib/path which imports node:path/fs/os.
+  turbopack: {
+    resolveAlias: {
+      "node:path": "path-browserify",
+      "node:fs": "./src/lib/empty-node-module.ts",
+      "node:os": "./src/lib/empty-node-module.ts",
+    },
+  },
   // The Web Worker (`wss-worker.ts`) pulls in @triplex/server + @triplex/lib
   // which use `node:path`, `node:fs`, and `node:os`. Webpack's prod build
   // doesn't know how to resolve `node:` URIs in browser bundles. Provide
