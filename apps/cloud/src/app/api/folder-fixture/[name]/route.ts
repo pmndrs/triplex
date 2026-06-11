@@ -62,7 +62,8 @@ async function walk(
 ): Promise<void> {
   const entries = await readdir(abs, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.name.startsWith(".")) continue;
+    // Allow .triplex/ (project config + provider); skip every other hidden.
+    if (entry.name.startsWith(".") && entry.name !== ".triplex") continue;
     if (SKIP_DIRS.has(entry.name)) continue;
     const childAbs = join(abs, entry.name);
     const childRel = rel ? `${rel}/${entry.name}` : entry.name;

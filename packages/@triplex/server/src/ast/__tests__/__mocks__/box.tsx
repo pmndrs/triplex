@@ -24,3 +24,11 @@ export default function Box({
 export function UseBox() {
   return <Box position={[0, 0, 0]} scale={[1, 1, 1]} />;
 }
+
+class Foo { }
+
+class Foo {
+}
+
+function foo() {
+}

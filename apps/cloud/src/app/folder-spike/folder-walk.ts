@@ -89,7 +89,11 @@ export async function walkFolder(
       const name = entry.name;
       const childRel = relPath ? `${relPath}/${name}` : name;
       if (entry.kind === "directory") {
-        if (SKIP_DIRS.has(name) || name.startsWith(".")) {
+        // Skip dot-prefixed dirs EXCEPT .triplex (the project config dir).
+        // Without this carve-out the user's provider + config never make
+        // it into the WebContainer and the runtime falls back to defaults.
+        const isHidden = name.startsWith(".") && name !== ".triplex";
+        if (SKIP_DIRS.has(name) || isHidden) {
           skipped.push(childRel);
           continue;
         }

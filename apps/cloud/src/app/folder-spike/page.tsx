@@ -330,10 +330,15 @@ export default function FolderSpike() {
       setInitialTarget(target);
       log(`[folder] initial scene: ${target.path}#${target.exportName}`);
 
-      // Detect the user's provider file (Triplex convention is
-      // src/provider.tsx). Fall back to the no-provider sentinel.
-      const providerFile = walk.files.find(
-        (f) => f.path === "src/provider.tsx" || f.path.endsWith("/src/provider.tsx"),
+      // Detect the user's provider file. Triplex's convention is
+      // .triplex/provider.tsx; some setups put it under src/. Fall back to
+      // the no-provider sentinel if neither exists.
+      const providerCandidates = [
+        ".triplex/provider.tsx",
+        "src/provider.tsx",
+      ];
+      const providerFile = walk.files.find((f) =>
+        providerCandidates.some((c) => f.path === c || f.path.endsWith(`/${c}`)),
       );
       const providerPath = providerFile ? `/${providerFile.path}` : NO_PROVIDER;
       log(`[folder] provider: ${providerPath}`);
@@ -764,10 +769,9 @@ export default function FolderSpike() {
 
       <div
         style={{
-          display: "grid",
           flex: 1,
-          gridTemplateColumns: iframeHtml ? "1fr 1fr" : "1fr",
           minHeight: 0,
+          position: "relative",
         }}
       >
         {iframeHtml ? (
@@ -778,51 +782,150 @@ export default function FolderSpike() {
             title="bridged editor"
           />
         ) : (
-          <div style={{ alignItems: "center", color: "#888", display: "flex", flexDirection: "column", gap: 12, justifyContent: "center", padding: 24 }}>
+          <div
+            style={{
+              alignItems: "center",
+              color: "#888",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              height: "100%",
+              justifyContent: "center",
+              padding: 24,
+            }}
+          >
             <p>Pick a Triplex project folder to begin.</p>
             <p style={{ fontSize: 12, maxWidth: 480, textAlign: "center" }}>
               Chromium only (File System Access API). The folder is mirrored
-              into a Web Worker (for AST) and a WebContainer (for Vite). The
-              first run installs npm deps, so initial boot is ~30–60s.
+              into a Web Worker (for AST) and a WebContainer (for the runtime).
+              First boot is ~90s (npm install + babel transforms).
             </p>
           </div>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <strong style={{ color: "#7af", padding: "8px 8px 0" }}>parent log</strong>
-          <pre
-            style={{
-              background: "#000",
-              border: "1px solid #222",
-              flex: 1,
-              fontSize: 11,
-              margin: 8,
-              overflow: "auto",
-              padding: 8,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {parentLog.join("\n")}
-            {npmSpinner ? `\n[npm] ${npmSpinner}` : ""}
-          </pre>
-          <strong style={{ color: "#7af", padding: "8px 8px 0" }}>editor log</strong>
-          <pre
-            data-testid="editor-log"
-            style={{
-              background: "#000",
-              border: "1px solid #222",
-              flex: 1,
-              fontSize: 11,
-              margin: 8,
-              overflow: "auto",
-              padding: 8,
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            {editorLog.join("\n")}
-          </pre>
-        </div>
+        <LogPanel
+          editorLog={editorLog}
+          npmSpinner={npmSpinner}
+          parentLog={parentLog}
+        />
       </div>
+    </div>
+  );
+}
+
+function LogPanel({
+  editorLog,
+  npmSpinner,
+  parentLog,
+}: {
+  editorLog: string[];
+  npmSpinner: string | null;
+  parentLog: string[];
+}) {
+  const [open, setOpen] = useState(true);
+  const [tab, setTab] = useState<"parent" | "editor">("parent");
+
+  // Auto-scroll the active pane on new lines.
+  const preRef = useRef<HTMLPreElement | null>(null);
+  useEffect(() => {
+    const el = preRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [parentLog, editorLog, tab, npmSpinner]);
+
+  const lines = tab === "parent" ? parentLog : editorLog;
+
+  return (
+    <div
+      style={{
+        background: "rgba(15, 15, 15, 0.92)",
+        border: "1px solid #2a2a2a",
+        borderRadius: 8,
+        bottom: 16,
+        boxShadow: "0 12px 32px rgba(0, 0, 0, 0.45)",
+        color: "#e6e6e6",
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "ui-monospace, Menlo, monospace",
+        fontSize: 11,
+        height: open ? 280 : 32,
+        position: "absolute",
+        right: 16,
+        transition: "height 120ms ease",
+        width: open ? 460 : 110,
+        zIndex: 10,
+      }}
+    >
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          alignItems: "center",
+          background: "transparent",
+          border: 0,
+          color: "#bbb",
+          cursor: "pointer",
+          display: "flex",
+          fontFamily: "inherit",
+          fontSize: 11,
+          gap: 8,
+          height: 32,
+          padding: "0 10px",
+          textAlign: "left",
+          width: "100%",
+        }}
+      >
+        <span style={{ color: "#7af" }}>logs</span>
+        <span style={{ color: "#666" }}>
+          ({parentLog.length}/{editorLog.length})
+        </span>
+        <span style={{ flex: 1 }} />
+        <span style={{ color: "#888" }}>{open ? "—" : "▢"}</span>
+      </button>
+      {open && (
+        <>
+          <div
+            style={{
+              borderBottom: "1px solid #222",
+              borderTop: "1px solid #222",
+              display: "flex",
+            }}
+          >
+            {(["parent", "editor"] as const).map((id) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                style={{
+                  background: tab === id ? "#1a1a1a" : "transparent",
+                  border: 0,
+                  borderBottom:
+                    tab === id ? "2px solid #7af" : "2px solid transparent",
+                  color: tab === id ? "#e6e6e6" : "#888",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  fontSize: 11,
+                  padding: "6px 14px",
+                }}
+              >
+                {id}
+              </button>
+            ))}
+          </div>
+          <pre
+            ref={preRef}
+            data-testid={tab === "editor" ? "editor-log" : "parent-log"}
+            style={{
+              background: "#000",
+              flex: 1,
+              margin: 0,
+              overflow: "auto",
+              padding: 8,
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {lines.join("\n")}
+            {tab === "parent" && npmSpinner ? `\n[npm] ${npmSpinner}` : ""}
+          </pre>
+        </>
+      )}
     </div>
   );
 }

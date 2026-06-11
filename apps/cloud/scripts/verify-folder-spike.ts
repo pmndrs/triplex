@@ -85,6 +85,10 @@ async function main() {
     } else if (t === "error") {
       console.log(`[main error] ${msg.text().slice(0, 400)} @ ${loc.url.slice(-80)}`);
     }
+    // Capture parent-frame logs that include worker route diagnostics.
+    if (msg.text().startsWith("[wss-worker]")) {
+      console.log(`[worker] ${msg.text().slice(0, 500)}`);
+    }
   });
 
   await page.goto(URL_TARGET, { waitUntil: "domcontentloaded" });
@@ -230,7 +234,22 @@ async function main() {
       const info = await f.evaluate(() => {
         const r = document.getElementById("root");
         const canvas = document.querySelector("canvas");
+        // Sanity check Tailwind: find a known-styled element and read its
+        // computed background colour. If Tailwind never ran, this'll be
+        // transparent / browser default.
+        const tw = document.querySelector(".bg-slate-700");
+        const twBg = tw
+          ? window.getComputedStyle(tw).backgroundColor
+          : "(no .bg-slate-700 found)";
+        // Also check the rounded button — Tailwind v3 should emit
+        // border-radius for `.rounded-full`.
+        const r2 = document.querySelector(".rounded-2xl");
+        const r2BorderRadius = r2
+          ? window.getComputedStyle(r2).borderRadius
+          : "(no .rounded-2xl found)";
         return {
+          twBg,
+          r2BorderRadius,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           $RefreshReg$: typeof (window as any).$RefreshReg$,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
