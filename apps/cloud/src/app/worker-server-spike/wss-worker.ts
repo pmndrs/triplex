@@ -92,6 +92,16 @@ type Req =
       handle: FileSystemDirectoryHandle;
     }
   | {
+      // Absolute path to the WebContainer project root, e.g.
+      // /home/{wcid}/project. The worker pretends every cached file lives
+      // here so its responses (sceneObjects.parentPath etc.) match the
+      // absolute paths the babel plugin injects into the renderer's
+      // metadata — which is what scene→tree selection sync compares
+      // against.
+      type: "set-project-root";
+      root: string;
+    }
+  | {
       type: "mutate-set-prop";
       mutationId: number;
       astPath?: string;
@@ -148,6 +158,36 @@ const project = new Project({
 });
 
 const fileCache = new Map<string, string>();
+// Absolute path to the WC project root. Empty string means we haven't been
+// told yet — responses fall back to the in-memory keys, which is what the
+// older flow did before we added the renderer/runtime.
+let projectRoot = "";
+
+function toAbsolutePath(p: string): string {
+  if (!projectRoot) return p;
+  if (!p) return p;
+  if (p.startsWith(projectRoot)) return p;
+  return projectRoot + (p.startsWith("/") ? p : "/" + p);
+}
+
+function absolutiseSceneObject<
+  T extends {
+    children?: T[];
+    parentPath?: string;
+    path?: string;
+  },
+>(o: T): T {
+  return {
+    ...o,
+    children: Array.isArray(o.children)
+      ? o.children.map((c) => absolutiseSceneObject(c))
+      : o.children,
+    ...(o.parentPath !== undefined
+      ? { parentPath: toAbsolutePath(o.parentPath) }
+      : null),
+    ...(o.path !== undefined ? { path: toAbsolutePath(o.path) } : null),
+  };
+}
 
 function resolveCachedKey(path: string): string | undefined {
   if (fileCache.has(path)) return path;
@@ -313,8 +353,17 @@ function handleRoute(
       line: loc.line,
       matchesFilesGlob: true,
       name: found.name,
-      path: params.path,
-      sceneObjects: positions.elements,
+      path: toAbsolutePath(params.path),
+      // Promote every cached relative path to the absolute WC layout so
+      // the renderer's babel meta (absolute) and the editor's tree row
+      // metadata (from this response) compare equal.
+      sceneObjects: positions.elements.map((el) =>
+        absolutiseSceneObject(el as Record<string, unknown> & {
+          children?: unknown[];
+          parentPath?: string;
+          path?: string;
+        }),
+      ),
     };
   }
   if (routeName === "/scene/:path/object/:astPath") {
@@ -326,11 +375,10 @@ function handleRoute(
     const tag = getJsxTag(sceneObject);
     const { props, transforms } = getJsxElementProps(file, sceneObject);
     if (tag.type === "custom") {
-      // Mirror the server's behaviour: also include the resolved path.
       return {
         exportName: "default",
         name: tag.tagName,
-        path: params.path,
+        path: toAbsolutePath(params.path),
         props,
         transforms,
         type: tag.type,
@@ -513,6 +561,12 @@ self.onmessage = (e: MessageEvent<Req>) => {
     fsHost.setRoot(msg.handle);
     // eslint-disable-next-line no-console
     console.log("[wss-worker] root handle attached");
+    return;
+  }
+  if (msg.type === "set-project-root") {
+    projectRoot = msg.root.replace(/\/+$/, "");
+    // eslint-disable-next-line no-console
+    console.log("[wss-worker] project root =", projectRoot);
     return;
   }
   if (msg.type === "mutate-set-prop") {

@@ -105,6 +105,7 @@ function buildIframeHtml(
       }
     });
 
+
     window.triplex = ${JSON.stringify(env)};
     // Stub VSCode API — but instead of a no-op, forward every postMessage
     // to the parent (our folder-spike page) so we can translate VSCE bridge
@@ -734,6 +735,19 @@ export default function FolderSpike() {
       log("[wc] booting…");
       const container = await WebContainer.boot();
       containerRef.current = container;
+      // Tell the worker the WC project root so its sceneObjects responses
+      // use absolute paths matching what the babel plugin injects into
+      // the renderer's runtime meta. Without this, scene→tree selection
+      // sync silently fails on the parentPath equality check.
+      const projectRoot = `${container.workdir}/project`;
+      const existingWorker = workerRef.current;
+      if (existingWorker) {
+        existingWorker.postMessage({
+          root: projectRoot,
+          type: "set-project-root",
+        });
+      }
+      log(`[worker] project root → ${projectRoot}`);
       const { tree, triplexDeps } = scaffold(
         walk.tree,
         /* pkgJsonText (already in tree) */ null,

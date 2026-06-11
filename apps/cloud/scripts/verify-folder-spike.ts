@@ -22,9 +22,14 @@ interface Summary {
 }
 
 async function dumpIframeConsole(page: Page): Promise<string> {
-  // The bridged editor iframe's __log is forwarded to parent as
-  // "editor-log" messages. The scene iframe (loaded from the WC URL via
-  // src-rewrite) is cross-origin so we can't read its console directly.
+  // Click the editor tab in the floating log panel so the editor log's
+  // <pre> picks up its data-testid (we only set it on the active tab).
+  await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll("button"));
+    const editorBtn = btns.find((b) => b.textContent === "editor");
+    if (editorBtn) (editorBtn as HTMLButtonElement).click();
+  });
+  await page.waitForTimeout(150);
   return await page.evaluate(() => {
     const ed = document.querySelector('[data-testid="editor-log"]');
     return ed?.textContent ?? "(no editor log)";
@@ -130,13 +135,18 @@ async function main() {
     return { height: r.height, width: r.width, x: r.x, y: r.y };
   });
   if (iframeRect) {
-    // The scene iframe is inside the editor iframe (rendered by editor-next).
-    // Click the centre of the editor's content area — the editor takes the
-    // whole iframe so this lands inside the scene.
     const cx = iframeRect.x + iframeRect.width * 0.55;
     const cy = iframeRect.y + iframeRect.height * 0.55;
-    console.log(`[verify] clicking (${cx}, ${cy})`);
+    console.log(`[verify] clicking center (${cx}, ${cy})`);
     await page.mouse.click(cx, cy);
+    await page.waitForTimeout(2_500);
+
+    // Also click into the tree panel on the left to see if tree-row
+    // clicks fire request-focus-element through to the scene.
+    const treeRectX = iframeRect.x + 100;
+    const treeRectY = iframeRect.y + 150;
+    console.log(`[verify] clicking tree row area (${treeRectX}, ${treeRectY})`);
+    await page.mouse.click(treeRectX, treeRectY);
     await page.waitForTimeout(2_500);
   } else {
     console.log("[verify] could not find editor iframe");
