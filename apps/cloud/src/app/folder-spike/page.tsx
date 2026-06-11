@@ -1369,12 +1369,33 @@ function LogPanel({
   const [open, setOpen] = useState(true);
   const [tab, setTab] = useState<"parent" | "editor">("parent");
 
-  // Auto-scroll the active pane on new lines.
+  // Auto-scroll the active pane on new lines — but only when the user
+  // hasn't scrolled away from the bottom. If they've intentionally
+  // scrolled up to read earlier output, leave their viewport alone.
   const preRef = useRef<HTMLPreElement | null>(null);
+  const stickToBottomRef = useRef(true);
   useEffect(() => {
     const el = preRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    if (stickToBottomRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, [parentLog, editorLog, tab, npmSpinner]);
+
+  function onLogScroll(e: React.UIEvent<HTMLPreElement>) {
+    const el = e.currentTarget;
+    const distanceFromBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight;
+    // 24px slack so a single line of new content still counts as "near
+    // the bottom" and keeps the stickiness.
+    stickToBottomRef.current = distanceFromBottom < 24;
+  }
+
+  // When switching tabs the user usually wants the freshest view, so
+  // reset the stickiness on tab change.
+  useEffect(() => {
+    stickToBottomRef.current = true;
+  }, [tab]);
 
   const lines = tab === "parent" ? parentLog : editorLog;
 
@@ -1456,6 +1477,7 @@ function LogPanel({
           <pre
             ref={preRef}
             data-testid={tab === "editor" ? "editor-log" : "parent-log"}
+            onScroll={onLogScroll}
             style={{
               background: "#000",
               flex: 1,
