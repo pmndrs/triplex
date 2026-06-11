@@ -747,6 +747,15 @@ export default function FolderSpike() {
       }
       log(`[worker] preloaded ${textFiles.length} text files`);
 
+      // Prod mode bundles every @triplex/* dist into a single response and
+      // skips pkg-watch SSE. Default flips with NODE_ENV at build time; the
+      // `?prod=1` URL flag lets local dev exercise the prod path.
+      const isProdMode =
+        process.env.NODE_ENV === "production" ||
+        (typeof window !== "undefined" &&
+          new URLSearchParams(window.location.search).get("prod") === "1");
+      log(`[wc] mode=${isProdMode ? "prod" : "dev"}`);
+
       // Boot WebContainer.
       log("[wc] booting…");
       const container = await WebContainer.boot();
@@ -947,38 +956,74 @@ export default function FolderSpike() {
       } // close `if (install)`
 
       // Mount workspace @triplex/* packages into project/node_modules so
-      // the prebuilt runtime-bundle can resolve them at runtime. JIT
-      // recompiles their src/ via /api/pkg/<name>, and pkg-watch streams
-      // post-mount edits straight into the WC FS for the scene reload.
-      for (const dep of triplexDeps) {
-        // dep is the full npm name (e.g. "@triplex/renderer"). Strip the
-        // namespace to get the dir we mount under node_modules/@triplex/.
-        const shortName = dep.replace(/^@triplex\//, "");
-        log(`[wc] mounting workspace ${dep}…`);
+      // the prebuilt runtime-bundle can resolve them at runtime. Dev mode
+      // fetches per-package JIT trees and lets pkg-watch stream post-mount
+      // edits for fast iteration. Prod mode grabs every prebuilt dist in a
+      // single request and mounts them in one go.
+      if (isProdMode) {
+        log("[wc] fetching prod @triplex/* bundle…");
         try {
-          const res = await fetch(`/api/pkg/${dep}`);
+          const res = await fetch("/api/triplex-bundle");
           if (!res.ok) {
-            log(`[wc] /api/pkg/${dep} → ${res.status}`);
-            continue;
+            log(`[wc] /api/triplex-bundle → ${res.status}`);
+          } else {
+            const data = (await res.json()) as {
+              etag: string;
+              packages: Record<
+                string,
+                { mountSegment: string; tree: Record<string, unknown> }
+              >;
+            };
+            const triplexDir: Record<string, unknown> = {};
+            for (const entry of Object.values(data.packages)) {
+              triplexDir[entry.mountSegment] = { directory: entry.tree };
+            }
+            await container.mount(
+              {
+                node_modules: {
+                  directory: { "@triplex": { directory: triplexDir } },
+                },
+              },
+              { mountPoint: "project" },
+            );
+            log(
+              `[wc] mounted ${Object.keys(data.packages).length} prebuilt pkgs (etag ${data.etag.slice(0, 8)})`,
+            );
           }
-          const { tree: pkgTree } = (await res.json()) as {
-            tree: Record<string, unknown>;
-          };
-          await container.mount(
-            {
-              node_modules: {
-                directory: {
-                  "@triplex": {
-                    directory: { [shortName]: { directory: pkgTree } },
+        } catch (err) {
+          log(`[wc] prod bundle fetch failed: ${(err as Error).message}`);
+        }
+      } else {
+        for (const dep of triplexDeps) {
+          // dep is the full npm name (e.g. "@triplex/renderer"). Strip the
+          // namespace to get the dir we mount under node_modules/@triplex/.
+          const shortName = dep.replace(/^@triplex\//, "");
+          log(`[wc] mounting workspace ${dep}…`);
+          try {
+            const res = await fetch(`/api/pkg/${dep}`);
+            if (!res.ok) {
+              log(`[wc] /api/pkg/${dep} → ${res.status}`);
+              continue;
+            }
+            const { tree: pkgTree } = (await res.json()) as {
+              tree: Record<string, unknown>;
+            };
+            await container.mount(
+              {
+                node_modules: {
+                  directory: {
+                    "@triplex": {
+                      directory: { [shortName]: { directory: pkgTree } },
+                    },
                   },
                 },
               },
-            },
-            { mountPoint: "project" },
-          );
-          log(`[wc] mounted ${dep}`);
-        } catch (err) {
-          log(`[wc] mount ${dep} failed: ${(err as Error).message}`);
+              { mountPoint: "project" },
+            );
+            log(`[wc] mounted ${dep}`);
+          } catch (err) {
+            log(`[wc] mount ${dep} failed: ${(err as Error).message}`);
+          }
         }
       }
 
@@ -986,11 +1031,10 @@ export default function FolderSpike() {
       // by source dir name — e.g. `renderer` for packages/renderer/, or
       // `@triplex/client` for packages/@triplex/client/. We mount everything
       // under node_modules/@triplex/<last-segment>/, so map both forms.
+      // Skipped in prod mode — the prebuilt bundle is static.
       const mountedPkgs = new Map<string, string>();
       for (const dep of triplexDeps) {
         const short = dep.replace(/^@triplex\//, "");
-        // SSE `pkg` for top-level workspace dirs is the unprefixed segment
-        // (`renderer`); for namespaced ones it's the full `@triplex/<n>`.
         mountedPkgs.set(short, short);
         mountedPkgs.set(`@triplex/${short}`, short);
       }
@@ -999,6 +1043,9 @@ export default function FolderSpike() {
       } catch {
         /* ignore */
       }
+      if (isProdMode) {
+        log("[pkg-watch] skipped (prod mode)");
+      } else {
       const es = new EventSource("/api/pkg-watch");
       pkgWatchRef.current = es;
       // Coalesce bursts of writes (e.g. a multi-file editor save) so the
@@ -1067,6 +1114,7 @@ export default function FolderSpike() {
       es.addEventListener("error", () => {
         log("[pkg-watch] stream error (will retry)");
       });
+      } // end of dev-mode SSE wiring
 
       // Mirror the WC's installed type declarations into the Web Worker so
       // ts-morph there can resolve JSX intrinsic types (mesh, group, div…)

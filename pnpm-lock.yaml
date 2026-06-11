@@ -138,6 +138,9 @@ importers:
       next:
         specifier: 15.3.8
         version: 15.3.8(@babel/core@7.27.3)(@opentelemetry/api@1.9.0)(@playwright/test@1.50.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      path-browserify:
+        specifier: ^1.0.1
+        version: 1.0.1
       react:
         specifier: ^19.0.0
         version: 19.1.0
