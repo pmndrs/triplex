@@ -4,7 +4,11 @@
  * This repository utilizes multiple licenses across different directories. To
  * see this files license find the nearest LICENSE file up the source tree.
  */
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@triplex/lib"],
@@ -12,6 +16,31 @@ const nextConfig: NextConfig = {
   // README.md that Turbopack tries to parse as a module. Keep it out of the
   // bundle and let Node resolve it at runtime.
   serverExternalPackages: ["esbuild"],
+  // The /api/triplex-bundle + /api/pkg/[...name] routes read prebuilt files
+  // from `packages/<n>/{dist,themes,package.json}` at runtime via fs.readdir.
+  // Next's auto-tracing can't see those reads, so we point it at the
+  // monorepo root and include the workspace pkgs explicitly. Without this,
+  // Vercel ships an empty `packages/` tree and the prod-bundle endpoint
+  // returns the unrewritten src-pointing package.json.
+  outputFileTracingRoot: join(__dirname, "../.."),
+  outputFileTracingIncludes: {
+    "/api/triplex-bundle": [
+      "../../packages/renderer/dist/**",
+      "../../packages/renderer/themes/**",
+      "../../packages/renderer/package.json",
+      "../../packages/bridge/dist/**",
+      "../../packages/bridge/package.json",
+      "../../packages/lib/dist/**",
+      "../../packages/lib/themes/**",
+      "../../packages/lib/package.json",
+    ],
+    "/api/pkg/[...name]": [
+      "../../packages/renderer/**",
+      "../../packages/bridge/**",
+      "../../packages/lib/**",
+      "../../packages/@triplex/**",
+    ],
+  },
   typescript: {
     ignoreBuildErrors: true,
   },

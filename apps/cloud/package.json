@@ -4,7 +4,7 @@
   "private": true,
   "license": "SEE LICENSE IN LICENSE",
   "scripts": {
-    "build": "next build",
+    "build": "pnpm --filter @triplex/renderer --filter @triplex/bridge --filter @triplex/lib build && next build",
     "dev": "next dev --turbopack",
     "start": "next start",
     "typedef": "tsc"
