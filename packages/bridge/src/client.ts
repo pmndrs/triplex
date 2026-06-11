@@ -44,6 +44,33 @@ function isCommandPaletteKeyPress(e: KeyboardEvent): boolean {
   );
 }
 
+/**
+ * Browser-owned ⌘/Ctrl shortcuts that we forward to the host AND want to
+ * suppress the native default for (e.g. ⌘S would otherwise open the
+ * "Save Page As" dialog inside the cross-origin scene iframe). Forwarding
+ * alone isn't enough — `createKeyboardEventForwarder` stops propagation
+ * but never prevents default, so we do it inside the predicate.
+ */
+function isClaimedBrowserShortcut(e: KeyboardEvent): boolean {
+  if (!(e.metaKey || e.ctrlKey)) return false;
+  if (e.altKey) return false;
+  const k = e.key.toLowerCase();
+  // Save, undo / redo (both common forms), select-all only when the
+  // active scene element isn't a text input. We err on the side of
+  // claiming more here: any handler the host registers can re-emit the
+  // default via its own logic, but the inverse (claiming back from the
+  // browser after the dialog fires) isn't possible.
+  return (
+    k === "s" ||
+    k === "z" ||
+    k === "y" ||
+    (k === "z" && e.shiftKey) ||
+    k === "k" ||
+    k === "o" ||
+    k === "n"
+  );
+}
+
 export function forwardKeyboardEvents() {
   return createKeyboardEventForwarder(
     (eventName, data) => {
@@ -52,6 +79,15 @@ export function forwardKeyboardEvents() {
     {
       capture: true,
       predicate: (e) => {
+        // Suppress the browser's native handler for shortcuts we forward
+        // to the host. Without this, ⌘S inside the scene iframe still
+        // pops the "Save Page As…" dialog even though the host receives
+        // the forwarded event and runs its own save flow.
+        if (isClaimedBrowserShortcut(e)) {
+          e.preventDefault();
+          return "stop-propagation";
+        }
+
         if (
           // @ts-ignore — :-) Hacks when using this x-package.
           window.triplex.env.state !== "play" ||

@@ -1267,49 +1267,22 @@ export default function FolderSpike() {
         fontFamily: "system-ui",
         height: "100vh",
         margin: 0,
+        overflow: "hidden",
         padding: 0,
       }}
     >
-      <header
-        style={{
-          alignItems: "center",
-          borderBottom: "1px solid #222",
-          display: "flex",
-          gap: 12,
-          padding: 12,
-        }}
+      {/* Kill the body's default 8px margin so the editor iframe sits flush
+          against every edge of the viewport. */}
+      <style>{`html,body{margin:0;padding:0;background:#0b0b0b;}`}</style>
+      {/* Status pill is still useful for the headless verify which queries
+          `[data-testid="status"]`; just keep it visually inert. */}
+      <div
+        aria-hidden
+        data-testid="status"
+        style={{ height: 0, overflow: "hidden" }}
       >
-        <strong>Folder spike</strong>
-        <span style={{ color: "#888" }}>
-          status: <span data-testid="status">{status}</span>
-          {folderName && <> · folder: <span style={{ color: "#7fa" }}>{folderName}</span></>}
-          {walkSummary && (
-            <> · {walkSummary.fileCount} files{walkSummary.skipped ? `, ${walkSummary.skipped} skipped` : ""}{walkSummary.truncated ? " (truncated)" : ""}</>
-          )}
-          {sceneUrl && <> · scene: <span style={{ color: "#7fa" }}>{sceneUrl}</span></>}
-          {initialTarget && <> · target: <span style={{ color: "#7fa" }}>{initialTarget.path}#{initialTarget.exportName}</span></>}
-          {dirtyCount > 0 && (
-            <>
-              {" · "}
-              <span style={{ color: "#f7c844" }}>
-                {dirtyCount} unsaved · ⌘S to save
-              </span>
-            </>
-          )}
-        </span>
-        <span style={{ flex: 1 }} />
-        {status === "idle" && (
-          <>
-            <button onClick={onPick} style={btn}>Open folder…</button>
-            {hasStoredHandle && (
-              <button onClick={onResume} style={btn}>Resume {folderName}</button>
-            )}
-            {hasStoredHandle && (
-              <button onClick={onForget} style={{ ...btn, background: "#333" }}>Forget</button>
-            )}
-          </>
-        )}
-      </header>
+        {status}
+      </div>
 
       <div
         style={{
@@ -1332,17 +1305,32 @@ export default function FolderSpike() {
               color: "#888",
               display: "flex",
               flexDirection: "column",
-              gap: 12,
+              gap: 16,
               height: "100%",
               justifyContent: "center",
               padding: 24,
             }}
           >
-            <p>Pick a Triplex project folder to begin.</p>
-            <p style={{ fontSize: 12, maxWidth: 480, textAlign: "center" }}>
+            <p style={{ margin: 0 }}>Pick a Triplex project folder to begin.</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={onPick} style={btn}>
+                Open folder…
+              </button>
+              {hasStoredHandle && (
+                <button onClick={onResume} style={btn}>
+                  Resume {folderName}
+                </button>
+              )}
+              {hasStoredHandle && (
+                <button onClick={onForget} style={{ ...btn, background: "#333", color: "#ccc" }}>
+                  Forget
+                </button>
+              )}
+            </div>
+            <p style={{ fontSize: 12, margin: 0, maxWidth: 480, textAlign: "center" }}>
               Chromium only (File System Access API). The folder is mirrored
               into a Web Worker (for AST) and a WebContainer (for the runtime).
-              First boot is ~90s (npm install + babel transforms).
+              First boot is ~90s; subsequent boots reuse the cached node_modules.
             </p>
           </div>
         )}

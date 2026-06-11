@@ -412,6 +412,57 @@ function ensureSourceFileInProject(path: string, contents: string): void {
   }
 }
 
+// Active subscription tracking so we can push fresh data when the file
+// they depend on gets mutated. Without this the editor's websocks-client
+// caches the first response forever — re-selecting the same element after
+// an edit returns the old (cached) value even though ts-morph has the new
+// one.
+interface ActiveSub {
+  // The original subscribe path (still URL-encoded so we can echo back).
+  path: string;
+  // The matched route + params so we can re-handle without re-parsing.
+  route: string;
+  params: Record<string, string>;
+}
+const activeSubs = new Map<number, ActiveSub>();
+
+function pathDependsOnFile(sub: ActiveSub, mutatedKey: string): boolean {
+  const p = sub.params.path;
+  if (!p) return false;
+  // Routes use the absolute babel-injected path; the mutated file's
+  // ts-morph filePath is the cached key (e.g. /src/foo.tsx). Compare via
+  // suffix match in either direction.
+  return (
+    p === mutatedKey ||
+    p.endsWith(mutatedKey) ||
+    mutatedKey.endsWith(p)
+  );
+}
+
+function pushSubsForFile(mutatedKey: string): void {
+  for (const [subId, info] of activeSubs) {
+    if (!pathDependsOnFile(info, mutatedKey)) continue;
+    try {
+      const data = handleRoute(info.route, info.params);
+      const res: Res = {
+        data,
+        path: info.path,
+        subId,
+        type: "message",
+      };
+      self.postMessage(res);
+    } catch (err) {
+      const res: Res = {
+        error: (err as Error).message,
+        path: info.path,
+        subId,
+        type: "error",
+      };
+      self.postMessage(res);
+    }
+  }
+}
+
 function countUnsaved(): number {
   let n = 0;
   for (const f of project.getSourceFiles()) {
@@ -494,6 +545,11 @@ self.onmessage = (e: MessageEvent<Req>) => {
         type: "mutated",
       };
       self.postMessage(res);
+      // Re-push any active subscriptions whose data depends on the file
+      // we just mutated. Without this the websocks-client caches the
+      // first response and re-selecting the same element shows stale
+      // props.
+      pushSubsForFile(file.getFilePath());
     } catch (err) {
       const res: Res = {
         dirtyCount: countUnsaved(),
@@ -544,7 +600,10 @@ self.onmessage = (e: MessageEvent<Req>) => {
     })();
     return;
   }
-  if (msg.type === "unsubscribe") return;
+  if (msg.type === "unsubscribe") {
+    activeSubs.delete(msg.subId);
+    return;
+  }
   if (msg.type === "subscribe") {
     // eslint-disable-next-line no-console
     console.log("[wss-worker] subscribe", msg.path);
@@ -562,6 +621,11 @@ self.onmessage = (e: MessageEvent<Req>) => {
         self.postMessage(res);
         return;
       }
+      activeSubs.set(msg.subId, {
+        params: matched.params,
+        path: msg.path,
+        route: matched.name,
+      });
       const data = handleRoute(matched.name, matched.params);
       const res: Res = {
         data,
