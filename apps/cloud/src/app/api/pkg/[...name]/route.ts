@@ -7,12 +7,12 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, resolve, sep as pathSep } from "node:path";
 import { type NextRequest } from "next/server";
+import {
+  compilePkgSrc,
+  PACKAGES_ROOT,
+  type FileSystemTree,
+} from "../../../../lib/pkg-jit";
 
-type FileNode = { file: { contents: string | { base64: string } } };
-type DirectoryNode = { directory: FileSystemTree };
-type FileSystemTree = Record<string, FileNode | DirectoryNode>;
-
-const PACKAGES_ROOT = resolve(process.cwd(), "../../packages");
 const TEXT_EXTENSIONS = new Set([
   ".css",
   ".d.ts",
@@ -35,11 +35,23 @@ const IGNORED = new Set([
   "src",
 ]);
 
+// Files that are only useful for local development tooling and would only
+// cause noise (or warnings) for Vite if shipped into the WebContainer.
+const SKIP_FILES = new Set([
+  ".swcrc",
+  "CHANGELOG.md",
+  "LICENSE",
+  "README.md",
+  "tsconfig.json",
+  "tsconfig.tsbuildinfo",
+]);
+
 async function walk(dir: string): Promise<FileSystemTree> {
   const tree: FileSystemTree = {};
   const entries = await readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     if (IGNORED.has(entry.name)) continue;
+    if (entry.isFile() && SKIP_FILES.has(entry.name)) continue;
     const abs = join(dir, entry.name);
     if (entry.isDirectory()) {
       tree[entry.name] = { directory: await walk(abs) };
@@ -86,8 +98,17 @@ function buildPackageJson(
     const base = file.slice(0, dot);
     // Skip hash-suffixed chunk files (e.g. index-CpdQtSaw.mjs) — they are
     // internal and not meant to be a subpath; only entries with a clean
-    // basename map to subpaths.
-    if (/-[A-Za-z0-9]{6,}$/.test(base)) continue;
+    // basename map to subpaths. A real hash always contains an uppercase
+    // letter or digit, which lets us distinguish `-CpdQtSaw` (hash) from
+    // `-revivables` (a regular kebab-case word).
+    const tail = base.slice(base.lastIndexOf("-") + 1);
+    if (
+      tail.length >= 6 &&
+      tail.length <= 12 &&
+      /[A-Z0-9]/.test(tail) &&
+      base.includes("-")
+    )
+      continue;
     const sub = base === "index" ? "." : `./${base}`;
     exports[sub] = `./dist/${file}`;
     if (sub === ".") mainFile = `./dist/${file}`;
@@ -118,25 +139,64 @@ function addExtensions(source: string): string {
   );
 }
 
+const SEGMENT = /^(@[a-z0-9._-]+|[a-z0-9._-]+)$/i;
+
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ name: string }> },
+  { params }: { params: Promise<{ name: string[] }> },
 ) {
   const { name } = await params;
-  if (!/^[a-z0-9-_]+$/i.test(name)) {
+  if (!Array.isArray(name) || name.length < 1 || name.length > 2) {
     return Response.json({ error: "bad name" }, { status: 400 });
   }
-  const target = join(PACKAGES_ROOT, name);
-  const resolved = resolve(target);
-  if (!resolved.startsWith(PACKAGES_ROOT)) {
-    return Response.json({ error: "out of bounds" }, { status: 400 });
+  for (const seg of name) {
+    if (!SEGMENT.test(seg)) {
+      return Response.json({ error: "bad name" }, { status: 400 });
+    }
   }
-  try {
-    await stat(resolved);
-  } catch {
+  // The page may send either layout:
+  //   /api/pkg/bridge           → packages/bridge/         (top-level)
+  //   /api/pkg/@triplex/client  → packages/@triplex/client (namespaced)
+  // Some workspace packages (renderer, bridge, lib) sit at the top level
+  // even though their npm name is `@triplex/<n>`. Probe both locations so
+  // callers can be agnostic about source layout.
+  const candidates: string[] = [];
+  candidates.push(join(PACKAGES_ROOT, name.join("/")));
+  if (name[0] === "@triplex" && name.length === 2) {
+    candidates.push(join(PACKAGES_ROOT, name[1]));
+  }
+  let resolved: string | null = null;
+  for (const candidate of candidates) {
+    const r = resolve(candidate);
+    if (!r.startsWith(PACKAGES_ROOT)) continue;
+    try {
+      await stat(r);
+      resolved = r;
+      break;
+    } catch {
+      /* try next candidate */
+    }
+  }
+  if (!resolved) {
     return Response.json({ error: "not found" }, { status: 404 });
   }
   const tree = await walk(resolved);
+
+  // Dev JIT: if packages/<name>/src/ exists, compile every .ts/.tsx in
+  // place and overwrite the tree's dist/ subtree with the compiled
+  // outputs. This makes the workspace package mountable in the WC without
+  // anyone having to run `pnpm --filter <name> build` first.
+  const srcDir = join(resolved, "src");
+  let hasSrc = false;
+  try {
+    const s = await stat(srcDir);
+    hasSrc = s.isDirectory();
+  } catch {
+    hasSrc = false;
+  }
+  if (hasSrc) {
+    tree.dist = { directory: await compilePkgSrc(srcDir) };
+  }
 
   const distNode = tree.dist;
   let distFiles: string[] = [];

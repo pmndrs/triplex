@@ -8,6 +8,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@triplex/lib"],
+  // esbuild ships platform-specific binary packages whose folders contain a
+  // README.md that Turbopack tries to parse as a module. Keep it out of the
+  // bundle and let Node resolve it at runtime.
+  serverExternalPackages: ["esbuild"],
   typescript: {
     ignoreBuildErrors: true,
   },

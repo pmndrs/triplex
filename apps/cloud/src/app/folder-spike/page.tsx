@@ -218,6 +218,21 @@ function buildIframeHtml(
       } else if (e.data && e.data.type === "scene-url") {
         sceneUrl = e.data.url;
         installIframeRewrite();
+      } else if (e.data && e.data.type === "reload-scene") {
+        // pkg-watch fallback when Vite couldn't HMR a workspace package
+        // change inside node_modules/@triplex/*. Bounce just the scene
+        // iframe so the editor's own state survives.
+        try {
+          document.querySelectorAll("iframe").forEach(function (f) {
+            const cur = f.getAttribute("src");
+            if (cur && sceneUrl && cur.indexOf(sceneUrl) === 0) {
+              f.setAttribute("src", cur);
+            }
+          });
+          window.__log.push("[shim] scene reload");
+        } catch (err) {
+          window.__log.push("[shim] scene reload fail: " + err);
+        }
       }
     });
 
@@ -576,6 +591,7 @@ export default function FolderSpike() {
   const channelRef = useRef<MessageChannel | null>(null);
   const rootHandleRef = useRef<FileSystemDirectoryHandle | null>(null);
   const server5871Ref = useRef<string | null>(null);
+  const pkgWatchRef = useRef<EventSource | null>(null);
   // Set by the cache code so the server-ready handler can re-snapshot
   // node_modules after Vite has warmed its dep cache. Both refs are read
   // by the server-ready handler registered before the cache logic runs.
@@ -930,16 +946,21 @@ export default function FolderSpike() {
       }
       } // close `if (install)`
 
-      // Mount workspace @triplex/* packages into project/node_modules.
-      // The runtime-bundle expects @triplex/renderer, @triplex/bridge,
-      // @triplex/lib to be resolvable from the project root.
+      // Mount workspace @triplex/* packages into project/node_modules. We
+      // include the runtime (`@triplex/{client,server,runtime-bundle}`) so
+      // the spawned cloud-runtime entry resolves them as JIT-served source
+      // and per-package edits flow through pkg-watch instead of needing a
+      // runtime-bundle rebuild.
       for (const dep of triplexDeps) {
-        const pkgName = dep.replace(/^@triplex\//, "");
+        // dep is the full npm name (e.g. "@triplex/renderer" or
+        // "@triplex/client"). Last segment after `@triplex/` is the dir
+        // name we mount under node_modules/@triplex/.
+        const shortName = dep.replace(/^@triplex\//, "");
         log(`[wc] mounting workspace ${dep}…`);
         try {
-          const res = await fetch(`/api/pkg/${pkgName}`);
+          const res = await fetch(`/api/pkg/${dep}`);
           if (!res.ok) {
-            log(`[wc] /api/pkg/${pkgName} → ${res.status}`);
+            log(`[wc] /api/pkg/${dep} → ${res.status}`);
             continue;
           }
           const { tree: pkgTree } = (await res.json()) as {
@@ -950,7 +971,7 @@ export default function FolderSpike() {
               node_modules: {
                 directory: {
                   "@triplex": {
-                    directory: { [pkgName]: { directory: pkgTree } },
+                    directory: { [shortName]: { directory: pkgTree } },
                   },
                 },
               },
@@ -962,6 +983,92 @@ export default function FolderSpike() {
           log(`[wc] mount ${dep} failed: ${(err as Error).message}`);
         }
       }
+
+      // Subscribe to packages/*/src/ change events. SSE emits `pkg` keyed
+      // by source dir name — e.g. `renderer` for packages/renderer/, or
+      // `@triplex/client` for packages/@triplex/client/. We mount everything
+      // under node_modules/@triplex/<last-segment>/, so map both forms.
+      const mountedPkgs = new Map<string, string>();
+      for (const dep of triplexDeps) {
+        const short = dep.replace(/^@triplex\//, "");
+        // SSE `pkg` for top-level workspace dirs is the unprefixed segment
+        // (`renderer`); for namespaced ones it's the full `@triplex/<n>`.
+        mountedPkgs.set(short, short);
+        mountedPkgs.set(`@triplex/${short}`, short);
+      }
+      try {
+        pkgWatchRef.current?.close();
+      } catch {
+        /* ignore */
+      }
+      const es = new EventSource("/api/pkg-watch");
+      pkgWatchRef.current = es;
+      // Coalesce bursts of writes (e.g. a multi-file editor save) so the
+      // scene reloads at most once per quiet 300ms window.
+      let reloadTimer: ReturnType<typeof setTimeout> | null = null;
+      const scheduleReload = () => {
+        if (reloadTimer) clearTimeout(reloadTimer);
+        reloadTimer = setTimeout(() => {
+          reloadTimer = null;
+          const iframe = iframeRef.current;
+          if (iframe?.contentWindow) {
+            iframe.contentWindow.postMessage(
+              { type: "reload-scene" },
+              "*",
+            );
+            log("[pkg-watch] reload scene");
+          }
+        }, 300);
+      };
+      es.addEventListener("hello", () => {
+        log("[pkg-watch] connected");
+      });
+      es.addEventListener("update", (ev) => {
+        const msg = JSON.parse((ev as MessageEvent).data) as {
+          pkg: string;
+          distPath: string;
+          contents: string;
+        };
+        const short = mountedPkgs.get(msg.pkg);
+        if (!short) return;
+        const wcPath = `project/node_modules/@triplex/${short}/dist/${msg.distPath}`;
+        void (async () => {
+          try {
+            const dirEnd = wcPath.lastIndexOf("/");
+            if (dirEnd > 0) {
+              await container.fs.mkdir(wcPath.slice(0, dirEnd), {
+                recursive: true,
+              });
+            }
+            await container.fs.writeFile(wcPath, msg.contents);
+            log(`[pkg-watch] ${msg.pkg}/${msg.distPath}`);
+            scheduleReload();
+          } catch (err) {
+            log(`[pkg-watch] write fail: ${(err as Error).message}`);
+          }
+        })();
+      });
+      es.addEventListener("delete", (ev) => {
+        const msg = JSON.parse((ev as MessageEvent).data) as {
+          pkg: string;
+          distPath: string;
+        };
+        const short = mountedPkgs.get(msg.pkg);
+        if (!short) return;
+        const wcPath = `project/node_modules/@triplex/${short}/dist/${msg.distPath}`;
+        void (async () => {
+          try {
+            await container.fs.rm(wcPath);
+            log(`[pkg-watch] removed ${msg.pkg}/${msg.distPath}`);
+            scheduleReload();
+          } catch (err) {
+            log(`[pkg-watch] rm fail: ${(err as Error).message}`);
+          }
+        })();
+      });
+      es.addEventListener("error", () => {
+        log("[pkg-watch] stream error (will retry)");
+      });
 
       // Mirror the WC's installed type declarations into the Web Worker so
       // ts-morph there can resolve JSX intrinsic types (mesh, group, div…)

@@ -51,8 +51,14 @@ const RUNTIME_RUNTIME_DEPS: Record<string, string> = {
 
 // @triplex/* workspace packages the runtime-bundle expects mounted in
 // node_modules after npm install. We don't list these as deps because
-// they're not on the npm registry.
-export const REQUIRED_TRIPLEX_DEPS = ["renderer", "bridge", "lib"];
+// they're not on the npm registry. Stored as full npm names (the page
+// derives both the node_modules mount path and the /api/pkg/ URL from
+// this).
+export const REQUIRED_TRIPLEX_DEPS = [
+  "@triplex/renderer",
+  "@triplex/bridge",
+  "@triplex/lib",
+];
 
 // Triplex's getConfig resolves paths via `join(cwd, ".triplex", file)`.
 // That means paths in this config are relative to `.triplex/` itself, so
@@ -117,10 +123,7 @@ export function scaffold(
     }
   }
   const triplexDeps = Array.from(
-    new Set([
-      ...strippedTriplex,
-      ...REQUIRED_TRIPLEX_DEPS.map((n) => `@triplex/${n}`),
-    ]),
+    new Set([...strippedTriplex, ...REQUIRED_TRIPLEX_DEPS]),
   );
 
   tree["package.json"] = {
