@@ -65,6 +65,22 @@ export async function transformTsToJs(
   return result.code;
 }
 
+/**
+ * SWC's output keeps extensionless relative imports (`./foo`, `../themes/base`)
+ * because the TypeScript source author can. Node ESM rejects them. Used by
+ * the prebuilt path (lib + bridge swc-out, tunnel-rat etc.); the JIT path's
+ * tree-aware rewriter handles richer cases like dir-vs-file resolution.
+ */
+export function addExtensions(source: string): string {
+  return source.replace(
+    /(from\s*|import\s+|import\s*\()["'](\.\.?\/[^"']*?)["']/g,
+    (match, prefix, path) => {
+      if (/\.(js|mjs|cjs|json|css)$/.test(path)) return match;
+      return `${prefix}"${path}.js"`;
+    },
+  );
+}
+
 export function collectFiles(
   node: FileSystemTree,
   prefix: string,

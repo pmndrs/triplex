@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, resolve, sep as pathSep } from "node:path";
 import {
+  addExtensions,
   buildPackageJson,
   PACKAGES_ROOT,
   type FileSystemTree,
@@ -181,6 +182,21 @@ export async function getProdBundle(): Promise<CachedBundle> {
         pkgNode.file.contents,
         distFiles,
       );
+    }
+
+    // swc emits extensionless relative imports (`./string`, `../foo`); Node
+    // ESM resolves only when the .js extension is explicit. The JIT route
+    // patches its compiled output the same way for the same reason.
+    if (distNode && "directory" in distNode) {
+      for (const [fname, node] of Object.entries(distNode.directory)) {
+        if (
+          "file" in node &&
+          typeof node.file.contents === "string" &&
+          fname.endsWith(".js")
+        ) {
+          node.file.contents = addExtensions(node.file.contents);
+        }
+      }
     }
 
     const mountSegment = pkg.name.replace(/^@triplex\//, "");

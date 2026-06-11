@@ -8,6 +8,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { join, resolve, sep as pathSep } from "node:path";
 import { type NextRequest } from "next/server";
 import {
+  addExtensions,
   buildPackageJson,
   compilePkgSrc,
   PACKAGES_ROOT,
@@ -77,20 +78,6 @@ async function walk(dir: string): Promise<FileSystemTree> {
     }
   }
   return tree;
-}
-
-/**
- * SWC's output uses extensionless relative imports (`./foo`, `../themes/base`).
- * Node ESM requires explicit `.js`. Rewrite source on the fly.
- */
-function addExtensions(source: string): string {
-  return source.replace(
-    /(from\s*|import\s+|import\s*\()["'](\.\.?\/[^"']*?)["']/g,
-    (match, prefix, path) => {
-      if (/\.(js|mjs|cjs|json|css)$/.test(path)) return match;
-      return `${prefix}"${path}.js"`;
-    },
-  );
 }
 
 const SEGMENT = /^(@[a-z0-9._-]+|[a-z0-9._-]+)$/i;
